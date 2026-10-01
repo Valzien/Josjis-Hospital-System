@@ -37,14 +37,35 @@ return [
     |--------------------------------------------------------------------------
     | Akun demo (hanya untuk lingkungan pengembangan / demo)
     |--------------------------------------------------------------------------
+    |
+    | Nilai default sengaja false agar `migrate --seed` di server produksi tidak
+    | pernah membuat akun dengan sandi "password". Aktifkan hanya di mesin
+    | pengembangan dengan JHS_DEMO_CREDENTIALS=true.
+    |
     */
-    'demo_credentials_enabled' => (bool) env('JHS_DEMO_CREDENTIALS', true),
+    'demo_credentials_enabled' => (bool) env('JHS_DEMO_CREDENTIALS', false),
     'demo_accounts' => [
         'Admin' => ['email' => 'admin@josjis.test', 'password' => 'password'],
         'Resepsionis' => ['email' => 'resepsionis@josjis.test', 'password' => 'password'],
         'Dokter' => ['email' => 'dokter@josjis.test', 'password' => 'password'],
         'Apoteker' => ['email' => 'apoteker@josjis.test', 'password' => 'password'],
         'Pasien' => ['email' => 'pasien@josjis.test', 'password' => 'password'],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Administrator awal
+    |--------------------------------------------------------------------------
+    |
+    | Dipakai InitialAdminSeeder ketika akun demo dinonaktifkan, agar server
+    | produksi tetap punya satu akun administrator untuk masuk pertama kali.
+    | Bila JHS_ADMIN_PASSWORD dikosongkan, sandi acak dibuat dan ditampilkan
+    | sekali di konsol.
+    |
+    */
+    'admin' => [
+        'email' => env('JHS_ADMIN_EMAIL', 'admin@josjis.test'),
+        'password' => (string) env('JHS_ADMIN_PASSWORD', ''),
     ],
 
     /*

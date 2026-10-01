@@ -68,8 +68,25 @@ php artisan serve
 
 ### 2.3 Akun demo
 
-Akun demo dibuat oleh `DemoSeeder`. Halaman login menampilkan daftar akun
-selama `JHS_DEMO_CREDENTIALS=true` (default). **Wajib diset `false` di produksi.**
+Nilai default `JHS_DEMO_CREDENTIALS` adalah `false` (aman). Selama bernilai
+`true`, `DemoSeeder` berjalan dan halaman login menampilkan daftar akun demo.
+Saat bernilai `false`, `DatabaseSeeder` **tidak** menjalankan `DemoSeeder`;
+yang dibuat hanya pengaturan sistem dan satu administrator awal dari
+`InitialAdminSeeder`.
+
+Administrator awal memakai `JHS_ADMIN_EMAIL` dan `JHS_ADMIN_PASSWORD`. Bila
+`JHS_ADMIN_PASSWORD` dikosongkan, seeder membuat sandi acak dan menampilkannya
+satu kali di konsol.
+
+```env
+JHS_DEMO_CREDENTIALS=false
+JHS_ADMIN_EMAIL=admin@josjis.test
+JHS_ADMIN_PASSWORD=SandiKuat-JHS-2026!
+```
+
+Login pertama administrator, lalu buat akun resepsionis, dokter, dan apoteker
+melalui menu **Admin → Pengguna**. Master data obat dan jadwal dokter diisi
+melalui UI, bukan seeder.
 
 | Role | Email | Password |
 | --- | --- | --- |
@@ -78,6 +95,20 @@ selama `JHS_DEMO_CREDENTIALS=true` (default). **Wajib diset `false` di produksi.
 | Dokter | `dokter@josjis.test` | `password` |
 | Apoteker | `apoteker@josjis.test` | `password` |
 | Pasien | `pasien@josjis.test` | `password` |
+
+Baris di atas hanya berlaku di mesin pengembangan dengan
+`JHS_DEMO_CREDENTIALS=true`.
+
+#### Mematikan akun demo pada database yang sudah terlanjur ter-seed
+
+```bash
+php artisan jhs:demo-off --list   # lihat dulu, tanpa mengubah apa pun
+php artisan jhs:demo-off          # nonaktifkan + acak ulang sandi
+```
+
+Perintah ini tidak menghapus data klinis, hanya menonaktifkan lima akun demo.
+Opsi `--purge` menghapus akunnya permanen; pakai hanya bila data klinis yang
+terkait sudah tidak diperlukan.
 
 > Data demo membuat jadwal Senin–Sabtu. Antrean "hari ini" hanya dibuat bila
 > ada dokter yang berjadwal pada hari seed dijalankan. Jalankan
@@ -213,8 +244,10 @@ Setelah mengubah `.env`, jalankan `php artisan config:clear`.
 - [ ] `APP_DEBUG=false`
 - [ ] `APP_URL` memakai domain sebenarnya (dipakai untuk tautan cetak/PDF)
 - [ ] `APP_KEY` sudah di-generate dan **tidak** ada di dalam repository
-- [ ] `JHS_DEMO_CREDENTIALS=false`
-- [ ] Password akun demo sudah dihapus bila data demo tidak dipakai
+- [ ] `JHS_DEMO_CREDENTIALS=false` (sudah menjadi nilai default)
+- [ ] `JHS_ADMIN_PASSWORD` diisi sandi kuat, bukan `password`
+- [ ] `php artisan jhs:demo-off --list` menyisakan nol akun demo aktif
+- [ ] Akun resepsionis, dokter, dan apoteker dibuat lewat UI, bukan seeder
 - [ ] `php artisan migrate --force` sudah dijalankan
 - [ ] Document root mengarah ke `public/`
 - [ ] HTTPS aktif

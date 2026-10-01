@@ -59,7 +59,7 @@ Models/           15 model Eloquent
                      MedicineService, ReportService
 database/
   migrations/       17 migrasi
-  seeders/          DatabaseSeeder, SettingSeeder, DemoSeeder
+  seeders/          DatabaseSeeder, SettingSeeder, InitialAdminSeeder, DemoSeeder
   factories/        13 factory
 resources/views/    93 Blade view
   components/       14 komponen reusable
@@ -107,6 +107,7 @@ Cakupan:
 | `PatientPagesTest` | dashboard, profil, antrean, riwayat, resep |
 | `QueueWorkflowTest` | nomor antrean, kuota, jam layanan, audit log |
 | `PrescriptionWorkflowTest` | alur status resep, pengurangan & pengembalian stok |
+| `DemoAccountGuardTest` | seeding non-demo tidak pernah membuat akun berpassword `password` |
 | `StockWorkflowTest` | stok masuk, keluar, penyesuaian |
 | `NumberGeneratorConcurrencyTest` | penomoran dokumen di bawah enam proses paralel (MySQL saja) |
 
@@ -125,8 +126,26 @@ mysql -u root -e "CREATE DATABASE IF NOT EXISTS jhs_test CHARACTER SET utf8mb4 C
 php artisan test -c phpunit.mysql.xml
 ```
 
-Hasil terakhir: 55 test / 309 assertion pada MySQL 8.4.3, dan 51 test / 299
+Hasil terakhir: 62 test / 338 assertion pada MySQL 8.4.3, dan 58 test / 328
 assertion pada SQLite in-memory (4 pengujian konkurensi dilewati).
+
+## Akun demo dan produksi
+
+`JHS_DEMO_CREDENTIALS` bernilai default `false` sehingga `php artisan
+migrate --seed` di server produksi tidak pernah membuat akun berpassword
+`password`. Dalam kondisi tersebut seeder hanya membuat pengaturan sistem dan
+satu administrator awal (`JHS_ADMIN_EMAIL` / `JHS_ADMIN_PASSWORD`). Akun
+resepsionis, dokter, dan apoteker dibuat lewat UI.
+
+Untuk mengaktifkan data demo di mesin pengembangan, set
+`JHS_DEMO_CREDENTIALS=true` lalu jalankan `php artisan db:seed`.
+
+Database yang sudah terlanjur ter-seed demo bisa dibersihkan dengan:
+
+```bash
+php artisan jhs:demo-off --list   # lihat daftar, tanpa mengubah apa pun
+php artisan jhs:demo-off          # nonaktifkan dan acak ulang sandi
+```
 
 ## Dokumentasi
 

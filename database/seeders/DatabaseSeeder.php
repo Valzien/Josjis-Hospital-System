@@ -11,9 +11,14 @@ class DatabaseSeeder extends Seeder
 
     public function run(): void
     {
-        $this->call([
-            SettingSeeder::class,
-            DemoSeeder::class,
-        ]);
+        $this->call(SettingSeeder::class);
+
+        if (config('jhs.demo_credentials_enabled')) {
+            $this->call(DemoSeeder::class);
+
+            return;
+        }
+
+        $this->call(InitialAdminSeeder::class);
     }
 }

@@ -26,10 +26,10 @@ pengujian, perbaikan format kode, dan pemaketan deployment.
 | Laporan & ekspor CSV | Selesai |
 | Audit log | Selesai |
 | Data demo (seeder) | Selesai |
-| Pengujian otomatis | Selesai - 51 test / 299 assertion (SQLite) |
+| Pengujian otomatis | Selesai - 62 test / 338 assertion (MySQL), 58 test / 328 assertion (SQLite) |
 | Kualitas format kode (Pint) | Selesai - `pint --test` lulus |
 | Pemaketan deployment | Selesai - Dockerfile, compose, Nginx, DEPLOY.md |
-| Verifikasi di MySQL 8 | **Selesai** - 55 test / 309 assertion |
+| Verifikasi di MySQL 8 | **Selesai** - 62 test / 338 assertion |
 | Uji konkurensi nomor dokumen | **Selesai** - 6 proses paralel, nol bentrok |
 | Uji build image Docker | **Belum** - Docker tidak terpasang |
 
@@ -40,7 +40,7 @@ pengujian, perbaikan format kode, dan pemaketan deployment.
 | Pemeriksaan | Perintah | Hasil |
 | --- | --- | --- |
 | Pengujian | `php artisan test` | 51 passed, 4 skipped, 299 assertion |
-| Pengujian MySQL 8 | `php artisan test -c phpunit.mysql.xml` | 55 passed, 309 assertion |
+| Pengujian MySQL 8 | `php artisan test -c phpunit.mysql.xml` | 62 passed, 338 assertion |
 | Konkurensi nomor dokumen | `php artisan test -c phpunit.mysql.xml --filter=Concurrency` | 4 passed (6 proses paralel per skenario) |
 | Format kode | `vendor/bin/pint --test` | passed (0 file) |
 | Sintaks PHP | `php -l` (app/database/tests/routes/config) | 0 error |
@@ -103,6 +103,20 @@ memakai `Gate`/Policy terpisah.
 | `DatabaseSeeder` tidak memanggil seeder apa pun | Sekarang memanggil `SettingSeeder` lalu `DemoSeeder` |
 | Loop riwayat memakai indeks numerik, bukan iterasi koleksi | Diubah menjadi `foreach ($doctors->values() ...)` |
 | String demo mengandung karakter asing dan campuran bahasa | Teks &#38;Data diperbaiki; sisanya masih dipoles (lihat Sisa Pekerjaan) |
+
+### Akun demo bocor ke produksi
+
+| Gejala | Perbaikan |
+| --- | --- |
+| `JHS_DEMO_CREDENTIALS` bernilai default `true` dan `DemoSeeder` tidak pernah memeriksanya, sehingga `migrate --seed` di server produksi selalu membuat lima akun berpassword `password` | Default dibalik menjadi `false`. `DatabaseSeeder` hanya menjalankan `DemoSeeder` saat flag aktif; selain itu memakai `InitialAdminSeeder` |
+| Server produksi baru tidak punya akun administrator untuk masuk pertama kali | `InitialAdminSeeder` membuat satu admin dari `JHS_ADMIN_EMAIL`/`JHS_ADMIN_PASSWORD`, atau sandi acak yang ditampilkan sekali di konsol |
+| Database yang sudah terlanjur ter-seed demo tidak punya cara mematikan akun tersebut dengan aman | Perintah `php artisan jhs:demo-off` (opsi `--list`, `--purge`) menonaktifkan akun demo dan mengacak ulang sandinya tanpa menghapus data klinis |
+| Blok akun demo pada halaman login bisa muncul di produksi | Blade sudah mengikuti flag config, dan ada pengujian yang memastikan blok itu tersembunyi saat flag mati |
+
+Pengaman regresi ada di `tests/Feature/DemoAccountGuardTest.php` (7 test):
+seeding non-demo hanya menghasilkan satu admin, tidak pernah memakai sandi
+`password`, tidak menghasilkan data klinis palsu, admin tidak terduplikasi,
+blok login mengikuti flag, dan `jhs:demo-off` benar-benar menonaktifkan akun.
 
 ---
 
@@ -212,7 +226,7 @@ sudah didokumentasikan di `DEPLOY.md`.
 - [ ] Jalankan `docker compose up -d --build` pada mesin dengan Docker; verifikasi image benar-benar dibangun.
 - [x] Jalankan seluruh suite terhadap **MySQL 8** (`php artisan test -c phpunit.mysql.xml`) - 55 test / 309 assertion lulus.
 - [x] Uji konkurensi nomor dokumen dengan enam proses paralel - nol bentrok, nol deadlock.
-- [ ] Set `JHS_DEMO_CREDENTIALS=false` dan hapus akun demo bila data demo tidak dipakai.
+- [x] Amankan akun demo (selesai 2026-10-01): default `JHS_DEMO_CREDENTIALS=false`, `InitialAdminSeeder` untuk admin awal, perintah `jhs:demo-off`, 7 test pengaman.
 - [ ] Pasang HTTPS dan sertifikat TLS.
 - [ ] Siapkan backup database terjadwal.
 

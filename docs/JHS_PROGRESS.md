@@ -140,6 +140,15 @@ ditambahkan di titik masuk yang menghasilkan nomor dokumen.
 Bukti pengukuran: `document_counters` tetap sinkron persis dengan data
 (RM 61/61, RS 60/60, P 6/6) tanpa lompatan nomor.
 
+### Catatan MySQL: `last_value` adalah reserved word
+
+`last_value` adalah keyword MySQL (fungsi window). Query SQL mentah apa pun
+yang menyebut kolom itu wajib memakai backtick, misalnya
+`` SELECT `last_value` FROM document_counters ``. Tanpa backtick, MySQL 8
+menolak query dengan galat sintaks 1064. Query di `NumberGenerator` sudah
+menggunakan backtick, dan model Eloquent otomatis mengapit nama kolom, jadi
+aman; hindari menulis SQL mentah tanpa backtick untuk tabel ini.
+
 ---
 
 ## Status Data Seed

@@ -1,0 +1,65 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: josjis-hospital:latest
+    container_name: jhs-app
+    restart: unless-stopped
+    ports:
+      - "${JHS_PORT:-8000}:8000"
+    environment:
+      APP_ENV: ${APP_ENV:-production}
+      APP_DEBUG: ${APP_DEBUG:-false}
+      APP_URL: ${APP_URL:-http://localhost:8000}
+      APP_KEY: ${APP_KEY:-}
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: ${DB_DATABASE:-josjis_hospital}
+      DB_USERNAME: ${DB_USERNAME:-josjis}
+      DB_PASSWORD: ${DB_PASSWORD:-secret}
+      SESSION_DRIVER: database
+      CACHE_STORE: database
+      QUEUE_CONNECTION: database
+      JHS_DEMO_CREDENTIALS: ${JHS_DEMO_CREDENTIALS:-false}
+      JHS_RUN_MIGRATIONS: ${JHS_RUN_MIGRATIONS:-true}
+      JHS_RUN_SEEDERS: ${JHS_RUN_SEEDERS:-false}
+    volumes:
+      - storage:/var/www/html/storage
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - jhs
+
+  db:
+    image: mysql:8.0
+    container_name: jhs-db
+    restart: unless-stopped
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-josjis_hospital}
+      MYSQL_USER: ${DB_USERNAME:-josjis}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root-secret}
+    ports:
+      - "${DB_FORWARD_PORT:-3307}:3306"
+    volumes:
+      - dbdata:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-p${DB_ROOT_PASSWORD:-root-secret}"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+    networks:
+      - jhs
+
+volumes:
+  dbdata:
+  storage:
+
+networks:
+  jhs:
+    driver: bridge

@@ -60,9 +60,11 @@ class EnumDomainRulesTest extends TestCase
         $this->assertSame([], QueueStatus::Cancelled->allowedTransitions());
     }
 
-    public function test_queue_status_allows_walking_straight_into_examination_from_waiting(): void
+    public function test_queue_status_requires_calling_before_examination(): void
     {
-        $this->assertTrue(QueueStatus::Waiting->canTransitionTo(QueueStatus::InExamination));
+        $this->assertFalse(QueueStatus::Waiting->canTransitionTo(QueueStatus::InExamination));
+        $this->assertTrue(QueueStatus::Waiting->canTransitionTo(QueueStatus::Called));
+        $this->assertTrue(QueueStatus::Called->canTransitionTo(QueueStatus::InExamination));
     }
 
     public function test_queue_status_classifies_open_and_finished_states(): void

@@ -63,7 +63,7 @@ enum QueueStatus: string
     public function allowedTransitions(): array
     {
         return match ($this) {
-            self::Waiting => [self::Called, self::InExamination, self::Cancelled],
+            self::Waiting => [self::Called, self::Cancelled],
             self::Called => [self::InExamination, self::Waiting, self::Cancelled],
             self::InExamination => [self::Completed, self::Cancelled],
             self::Completed, self::Cancelled => [],

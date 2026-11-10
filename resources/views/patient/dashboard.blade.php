@@ -31,19 +31,22 @@
 
     <div class="row g-3 mb-3">
         <div class="col-6 col-xl-3">
-            <x-stat-card label="Dokter Aktif" :value="$stats['doctors']" icon="bi-heart-pulse" color="success"
-                         :meta="$stats['doctors_today'].' bertugas hari ini'" />
+            <x-stat-card label="Dokter Bertugas" :value="$stats['doctors_today']" icon="bi-heart-pulse" color="success"
+                         :meta="$stats['doctors'].' dokter spesialis'" :href="route('patient.doctors.index')" />
         </div>
         <div class="col-6 col-xl-3">
             <x-stat-card label="Riwayat Pemeriksaan" :value="$stats['records']" icon="bi-journal-medical" color="primary"
                          :href="route('patient.history.index')" />
         </div>
         <div class="col-6 col-xl-3">
-            <x-stat-card label="Total Antrean" :value="$stats['queues']" icon="bi-list-ol" color="info"
-                         :href="route('patient.queue.index')" />
+            <x-stat-card label="Resep Saya" :value="$patient?->prescriptions()->count() ?? 0" icon="bi-file-earmark-medical" color="info"
+                         :href="route('patient.prescriptions.index')" />
         </div>
         <div class="col-6 col-xl-3">
-            <x-stat-card label="Antrean Hari Ini" :value="$todayQueueCount" icon="bi-calendar-check" color="secondary" />
+            <x-stat-card label="Antrean Hari Ini" :value="$queue ? $queue->queue_number : 'Tidak Ada'" icon="bi-ticket-perforated"
+                         :meta="$queue ? $queue->statusLabel() : 'Belum ambil antrean'"
+                         :color="$queue ? 'primary' : 'secondary'"
+                         :href="$queue ? route('patient.queue.show', $queue) : route('patient.queue.create')" />
         </div>
     </div>
 
@@ -190,7 +193,7 @@
                         <i class="bi bi-calendar-week me-2"></i>Jadwal Dokter
                     </a>
                     <a href="{{ route('patient.medicines.index') }}" class="btn btn-light border text-start">
-                        <i class="bi bi-capsule me-2"></i>Obat Diberikan
+                        <i class="bi bi-capsule me-2"></i>Obat Saya
                     </a>
                 </div>
             </x-card>

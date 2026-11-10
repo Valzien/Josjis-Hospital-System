@@ -7,10 +7,10 @@
     <meta name="robots" content="noindex, nofollow">
     <title>@yield('title', 'Dashboard') &middot; {{ $jhsConfig['short_name'] }}</title>
 
-    <link rel="icon" href="{{ asset('images/favicon.svg') }}" type="image/svg+xml">
+    <link rel="icon" href="{{ asset('images/favicon.png') }}" type="image/png">
     <link rel="stylesheet" href="{{ asset('vendor/bootstrap/css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/bootstrap-icons/bootstrap-icons.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/jhs.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/jhs.css').'?v='.@filemtime(public_path('css/jhs.css')) }}">
     @stack('styles')
     @if(config('app.env') === 'local')
         <script>
@@ -41,8 +41,7 @@
     @include('partials.flash')
 
     <script src="{{ asset('vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-    <script src="{{ asset('vendor/apexcharts/js/apexcharts.min.js') }}"></script>
-    <script src="{{ asset('js/jhs.js') }}"></script>
+    <script src="{{ asset('js/jhs.js').'?v='.@filemtime(public_path('js/jhs.js')) }}"></script>
     @stack('scripts')
 </body>
 </html>

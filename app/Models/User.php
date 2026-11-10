@@ -100,7 +100,13 @@ class User extends Authenticatable
     /** Nama yang ditampilkan di UI: patient_profile > doctor_profile > user name. */
     public function displayName(): string
     {
-        $profile = $this->patient ?? $this->doctor ?? $this->receptionist ?? $this->pharmacist;
+        $profile = match ($this->role) {
+            UserRole::Doctor => $this->doctor,
+            UserRole::Patient => $this->patient,
+            UserRole::Receptionist => $this->receptionist,
+            UserRole::Pharmacist => $this->pharmacist,
+            default => null,
+        };
 
         return $profile?->name ?? $this->name;
     }

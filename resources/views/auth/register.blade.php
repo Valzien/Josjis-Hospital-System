@@ -1,12 +1,15 @@
 @extends('layouts.guest')
 
 @section('title', 'Daftar Pasien')
+@section('card-class', 'jhs-auth-card-wide')
 
 @section('content')
     <div class="text-center mb-4">
-        <span class="jhs-logo-mark jhs-logo-mark-lg mb-3 d-inline-flex">+</span>
+        <div class="d-inline-flex p-2 rounded-4 bg-primary bg-opacity-10 mb-3 shadow-xs">
+            <img src="{{ asset('images/logo-icon.png') }}" alt="{{ config('jhs.name') }}" height="56" class="d-inline-block">
+        </div>
         <h1 class="h4 fw-bold mb-1">Daftar Akun Pasien</h1>
-        <p class="text-secondary mb-0">Lengkapi data dasar, lalu lengkapi profil saat pertama masuk.</p>
+        <p class="text-secondary small mb-0">Lengkapi data pendaftaran akun pasien untuk mengambil antrean</p>
     </div>
 
     <form method="POST" action="{{ route('register') }}" novalidate>

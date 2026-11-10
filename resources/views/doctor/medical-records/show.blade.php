@@ -91,7 +91,7 @@
             @if ($record->prescription)
                 <x-card title="Resep" icon="bi-file-earmark-medical" class="mt-3">
                     <x-slot:actions>
-                        <span class="badge bg-light border">{{ $record->prescription->code }}</span>
+                        <span class="badge bg-light text-dark border">{{ $record->prescription->code }}</span>
                     </x-slot:actions>
                     <div class="table-responsive">
                         <table class="table table-hover align-middle jhs-table-compact">

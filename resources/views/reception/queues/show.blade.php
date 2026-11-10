@@ -10,6 +10,9 @@
             <a href="{{ route('reception.queues.index') }}" class="btn btn-light border btn-sm">
                 <i class="bi bi-arrow-left me-1"></i>Daftar Antrean
             </a>
+            <a href="{{ route('reception.queues.ticket', $queue) }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-printer me-1"></i>Cetak Karcis
+            </a>
             <a href="{{ route('reception.patients.show', $queue->patient) }}" class="btn btn-light border btn-sm">
                 <i class="bi bi-person-vcard me-1"></i>Data Pasien
             </a>
@@ -37,12 +40,16 @@
                             @csrf @method('PATCH')
                             <button class="btn btn-primary w-100" type="submit"><i class="bi bi-megaphone me-1"></i>Panggil Pasien</button>
                         </form>
-                    @elseif ($queue->isOpen())
-                        <form method="POST" action="{{ route('reception.queues.call', $queue) }}">
+                    @elseif ($queue->status === \App\Enums\QueueStatus::Called)
+                        <form method="POST" action="{{ route('reception.queues.recall', $queue) }}">
                             @csrf @method('PATCH')
-                            <button class="btn btn-primary w-100" type="submit"><i class="bi bi-clipboard2-pulse me-1"></i>Mulai Pemeriksaan</button>
+                            <button class="btn btn-warning text-dark w-100" type="submit"><i class="bi bi-megaphone-fill me-1"></i>Panggil Ulang Pasien</button>
                         </form>
                     @endif
+
+                    <a href="{{ route('reception.queues.ticket', $queue) }}" target="_blank" class="btn btn-outline-primary w-100">
+                        <i class="bi bi-printer me-1"></i>Cetak Karcis Antrean
+                    </a>
 
                     @if ($queue->isOpen())
                         <form method="POST" action="{{ route('reception.queues.cancel', $queue) }}">
@@ -136,7 +143,7 @@
             @if ($queue->medicalRecord?->prescription)
                 <x-card title="Resep" icon="bi-file-earmark-medical" class="mt-3">
                     <x-slot:actions>
-                        <span class="badge bg-light border">{{ $queue->medicalRecord->prescription->code }}</span>
+                        <span class="badge bg-light text-dark border">{{ $queue->medicalRecord->prescription->code }}</span>
                     </x-slot:actions>
                     <div class="table-responsive">
                         <table class="table table-sm align-middle jhs-table-compact">

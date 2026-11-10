@@ -8,7 +8,7 @@
         ->implode('');
 
     $sizeClass = $size ? 'jhs-avatar-'.$size : '';
-    $style = $color ? "background:linear-gradient(135deg, {$color}, #0d9488);" : null;
+    $style = $color ? "background: {$color}; color: #ffffff;" : null;
 @endphp
 
 <span {{ $attributes->class(['jhs-avatar', $sizeClass]) }} @if ($style) style="{{ $style }}" @endif>

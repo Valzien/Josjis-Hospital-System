@@ -192,6 +192,37 @@ class MedicineService
         return Medicine::query()->active()->lowStock()->count();
     }
 
+    public function expiringSoonCount(int $days = 30): int
+    {
+        return Medicine::query()
+            ->active()
+            ->whereNotNull('expiry_date')
+            ->whereDate('expiry_date', '>=', now()->toDateString())
+            ->whereDate('expiry_date', '<=', now()->addDays($days)->toDateString())
+            ->count();
+    }
+
+    public function expiredCount(): int
+    {
+        return Medicine::query()
+            ->active()
+            ->whereNotNull('expiry_date')
+            ->whereDate('expiry_date', '<', now()->toDateString())
+            ->count();
+    }
+
+    public function expiringSoonMedicines(int $days = 30, ?int $limit = null)
+    {
+        return Medicine::query()
+            ->active()
+            ->whereNotNull('expiry_date')
+            ->whereDate('expiry_date', '>=', now()->toDateString())
+            ->whereDate('expiry_date', '<=', now()->addDays($days)->toDateString())
+            ->orderBy('expiry_date')
+            ->when($limit, fn ($q) => $q->limit($limit))
+            ->get();
+    }
+
     /** Nilai persediaan obat (untuk laporan & dashboard). */
     public function inventoryValue(): float
     {

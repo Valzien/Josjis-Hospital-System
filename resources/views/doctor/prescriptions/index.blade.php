@@ -3,21 +3,30 @@
 @section('title', 'Resep Saya')
 
 @section('content')
-    <x-page-header title="Resep Saya" description="Resep yang Anda buat dan status pemrosesan oleh apoteker." icon="bi-file-earmark-medical">
-        <x-slot:actions>
-            <form method="GET" class="d-flex gap-2 flex-wrap">
-                <input type="search" name="q" value="{{ $filters['q'] ?? '' }}" class="form-control form-control-sm"
+    <x-page-header title="Resep Saya" description="Resep yang Anda buat dan status pemrosesan oleh apoteker." icon="bi-file-earmark-medical" />
+
+    <x-card class="mb-3">
+        <form method="GET" class="row g-2 align-items-end">
+            <div class="col-md-5 col-lg-5">
+                <label class="form-label small mb-1" for="q">Cari Resep / Pasien</label>
+                <input type="search" name="q" id="q" value="{{ $filters['q'] ?? '' }}" class="form-control form-control-sm"
                        placeholder="Kode resep atau nama pasien" aria-label="Cari" data-search-submit>
-                <select name="status" class="form-select form-select-sm" aria-label="Status">
+            </div>
+            <div class="col-md-4 col-lg-4">
+                <label class="form-label small mb-1" for="status">Status</label>
+                <select name="status" id="status" class="form-select form-select-sm" aria-label="Status">
                     <option value="">Semua Status</option>
                     @foreach ($statuses as $value => $label)
                         <option value="{{ $value }}" @selected(($filters['status'] ?? '') === $value)>{{ $label }}</option>
                     @endforeach
                 </select>
-                <button class="btn btn-light border btn-sm" type="submit">Terapkan</button>
-            </form>
-        </x-slot:actions>
-    </x-page-header>
+            </div>
+            <div class="col-md-3 col-lg-3 d-flex gap-2">
+                <button class="btn btn-primary btn-sm flex-grow-1" type="submit"><i class="bi bi-funnel me-1"></i>Terapkan</button>
+                <a href="{{ route('doctor.prescriptions.index') }}" class="btn btn-light border btn-sm">Reset</a>
+            </div>
+        </form>
+    </x-card>
 
     <div class="row g-3 mb-3">
         @foreach ($statuses as $value => $label)

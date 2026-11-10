@@ -53,7 +53,15 @@ class PharmacyPagesTest extends SmokeTestCase
 
         $this->actingAs($pharmacist);
 
-        $this->seedScenario();
+        $data = $this->seedScenario();
+        \App\Models\MedicineTransaction::factory()->in(10)->create([
+            'medicine_id' => $data['medicine']->id,
+            'created_at' => now(),
+        ]);
+        \App\Models\MedicineTransaction::factory()->out(5, 50)->create([
+            'medicine_id' => $data['medicine']->id,
+            'created_at' => now(),
+        ]);
 
         $response = $this->get(route('pharmacy.transactions.index'));
         $response->assertOk();

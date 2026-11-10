@@ -18,7 +18,7 @@ class TransactionController extends Controller
         $transactions = MedicineTransaction::query()
             ->with(['medicine', 'user'])
             ->when($request->filled('q'), fn ($q) => $q->search($request->string('q')->trim()->value()))
-            ->when($request->filled('type'), fn ($q) => $q->type($request->string('type')->value))
+            ->when($request->filled('type'), fn ($q) => $q->type($request->string('type')->value()))
             ->when($request->filled('medicine_id'), fn ($q) => $q->where('medicine_id', $request->integer('medicine_id')))
             ->when($request->filled('from'), fn ($q) => $q->whereDate('created_at', '>=', $request->date('from')))
             ->when($request->filled('to'), fn ($q) => $q->whereDate('created_at', '<=', $request->date('to')))
@@ -59,7 +59,8 @@ class TransactionController extends Controller
 
         $rows = [];
         foreach ($grouped as $row) {
-            $rows[$row->d.'|'.$row->type] = (float) $row->total;
+            $typeKey = $row->type instanceof TransactionType ? $row->type->value : (string) $row->type;
+            $rows[$row->d.'|'.$typeKey] = (float) $row->total;
         }
 
         $labels = [];

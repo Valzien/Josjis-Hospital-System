@@ -9,6 +9,7 @@ use App\Models\DoctorSchedule;
 use App\Models\Patient;
 use App\Models\Queue;
 use App\Services\QueueService;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
@@ -18,19 +19,36 @@ class DashboardController extends Controller
         $today = now()->toDateString();
         $summary = Queue::statusSummaryForToday();
 
+        $queueStats = Queue::query()
+            ->onDate($today)
+            ->whereNotNull('doctor_schedule_id')
+            ->select('doctor_schedule_id', 'status', DB::raw('count(*) as aggregate'))
+            ->groupBy('doctor_schedule_id', 'status')
+            ->get()
+            ->groupBy('doctor_schedule_id');
+
+        $cancelled = QueueStatus::cancelledValues();
+
         $todaySchedules = DoctorSchedule::query()
             ->with('doctor')
             ->active()
             ->forDay(now())
             ->orderBy('start_time')
             ->get()
-            ->map(fn (DoctorSchedule $s) => [
-                'schedule' => $s,
-                'taken' => Queue::query()->where('doctor_schedule_id', $s->id)->whereDate('queue_date', $today)->count(),
-                'remaining' => $queueService->remainingQuota($s),
-                'done' => Queue::query()->where('doctor_schedule_id', $s->id)->whereDate('queue_date', $today)
-                    ->where('status', QueueStatus::Completed->value)->count(),
-            ]);
+            ->map(function (DoctorSchedule $s) use ($queueStats, $cancelled) {
+                $stats = $queueStats->get($s->id, collect());
+                $taken = (int) $stats->sum('aggregate');
+                $activeTaken = (int) $stats->whereNotIn('status', $cancelled)->sum('aggregate');
+                $done = (int) $stats->where('status', QueueStatus::Completed->value)->sum('aggregate');
+                $remaining = max(0, $s->quota - $activeTaken);
+
+                return [
+                    'schedule' => $s,
+                    'taken' => $taken,
+                    'remaining' => $remaining,
+                    'done' => $done,
+                ];
+            });
 
         return view('reception.dashboard', [
             'summary' => $summary,
@@ -54,6 +72,7 @@ class DashboardController extends Controller
             'newPatientsToday' => Patient::query()->whereDate('created_at', $today)->count(),
             'totalPatients' => Patient::query()->count(),
             'completedToday' => $summary[QueueStatus::Completed->value] ?? 0,
+            'staleCount' => Queue::query()->whereDate('queue_date', '<', $today)->whereIn('status', [QueueStatus::Waiting->value, QueueStatus::Called->value])->count(),
         ]);
     }
 }

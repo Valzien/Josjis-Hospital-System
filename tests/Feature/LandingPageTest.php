@@ -16,15 +16,14 @@ class LandingPageTest extends TestCase
         $this->get('/')->assertOk();
     }
 
-    public function test_landing_page_shows_public_counts(): void
+    public function test_landing_page_shows_doctors_and_features(): void
     {
-        Doctor::factory()->count(3)->create();
-        Medicine::factory()->count(2)->create();
+        $doctor = Doctor::factory()->create(['name' => 'dr. Budi Santoso']);
 
         $this->get('/')
             ->assertOk()
-            ->assertSee('3')
-            ->assertSee('2');
+            ->assertSee('dr. Budi Santoso')
+            ->assertSee('Layanan Unggulan');
     }
 
     public function test_guest_is_redirected_to_login_from_dashboard(): void

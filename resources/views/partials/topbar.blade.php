@@ -4,11 +4,17 @@
 @endphp
 
 <header class="jhs-topbar">
-    <button class="jhs-icon-btn d-lg-none" type="button" data-sidebar-toggle aria-label="Buka menu">
-        <i class="bi bi-list"></i>
-    </button>
+    <div class="d-flex align-items-center gap-2">
+        <button class="jhs-icon-btn d-lg-none" type="button" data-sidebar-toggle aria-label="Buka menu">
+            <i class="bi bi-list"></i>
+        </button>
+        <a class="d-flex align-items-center gap-2 d-lg-none text-decoration-none" href="{{ route($user?->dashboardRoute() ?? 'landing') }}">
+            <img src="{{ asset('images/logo-icon.png') }}" alt="{{ config('jhs.short_name') }}" height="26">
+            <span class="fw-bold text-dark fs-6">{{ config('jhs.short_name') }}</span>
+        </a>
+    </div>
 
-    <div class="flex-grow-1 min-w-0">
+    <div class="flex-grow-1 min-w-0 d-none d-sm-block">
         @hasSection('page-breadcrumb')
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb jhs-breadcrumb mb-0">

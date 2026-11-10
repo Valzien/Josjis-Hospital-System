@@ -124,6 +124,15 @@
                             @error('price')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
 
+                        <div class="col-12">
+                            <label class="form-label" for="expiry_date">Tanggal Kedaluwarsa</label>
+                            <input type="date" name="expiry_date" id="expiry_date"
+                                   value="{{ old('expiry_date', $medicine->expiry_date?->toDateString()) }}"
+                                   class="form-control @error('expiry_date') is-invalid @enderror">
+                            <div class="form-text">Opsional. Untuk peringatan obat mendekati kedaluwarsa.</div>
+                            @error('expiry_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+
                         @if ($medicine->exists)
                             <div class="col-12">
                                 <div class="alert alert-light border small mb-0">

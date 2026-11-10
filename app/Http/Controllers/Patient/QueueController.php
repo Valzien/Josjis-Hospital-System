@@ -36,7 +36,7 @@ class QueueController extends Controller
             'queues' => $queues,
             'statuses' => QueueStatus::options(),
             'filters' => $request->only('status'),
-            'activeQueue' => auth()->user()->patient->queues()->open()->latest('id')->first(),
+            'activeQueue' => auth()->user()->patient->queues()->onDate(now())->open()->latest('id')->first(),
         ]);
     }
 
@@ -71,7 +71,7 @@ class QueueController extends Controller
                 blank($patient->phone) ? 'nomor telepon' : null,
                 blank($patient->address) ? 'alamat' : null,
             ])),
-            'existingQueue' => $patient->queues()->open()->latest('id')->first(),
+            'existingQueue' => $patient->queues()->onDate(now())->open()->latest('id')->first(),
         ]);
     }
 
@@ -106,7 +106,12 @@ class QueueController extends Controller
     {
         abort_if($queue->patient_id !== auth()->user()->patient?->id, 403);
 
-        $queue->load(['doctor', 'doctorSchedule', 'medicalRecord.prescription']);
+        $queue->load([
+            'doctor',
+            'doctorSchedule',
+            'medicalRecord.doctor',
+            'medicalRecord.prescription.details.medicine',
+        ]);
 
         return view('patient.queue.show', [
             'queue' => $queue,
@@ -114,6 +119,17 @@ class QueueController extends Controller
             'estimatedMinutes' => $queue->estimatedMinutes(),
             'servingNow' => Queue::currentlyServing($queue->doctor_id, $queue->queue_date),
             'nextUp' => $this->queues->upcoming($queue->doctor_id, $queue->queue_date->toDateString(), 5),
+        ]);
+    }
+
+    public function ticket(Queue $queue): View
+    {
+        abort_if($queue->patient_id !== auth()->user()->patient?->id, 403);
+        $queue->load(['patient', 'doctor', 'doctorSchedule']);
+
+        return view('reception.queues.ticket', [
+            'queue' => $queue,
+            'isPatient' => true,
         ]);
     }
 

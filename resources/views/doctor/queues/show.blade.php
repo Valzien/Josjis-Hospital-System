@@ -29,12 +29,9 @@
 
                 <div class="d-grid gap-2 mt-3">
                     @if ($queue->isWaiting())
-                        <form method="POST" action="{{ route('doctor.queues.start', $queue) }}">
-                            @csrf @method('PATCH')
-                            <button class="btn btn-primary w-100" type="submit">
-                                <i class="bi bi-play-circle me-1"></i>Mulai Pemeriksaan
-                            </button>
-                        </form>
+                        <div class="alert alert-warning py-2 px-3 small mb-0 text-center">
+                            <i class="bi bi-clock me-1"></i>Menunggu panggilan & verifikasi dari Resepsionis di loket.
+                        </div>
                     @elseif ($queue->status === \App\Enums\QueueStatus::Called)
                         <a href="{{ route('doctor.examinations.create', $queue) }}" class="btn btn-primary">
                             <i class="bi bi-clipboard2-pulse me-1"></i>Isi Rekam Medis

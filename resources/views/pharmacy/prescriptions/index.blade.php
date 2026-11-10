@@ -3,31 +3,46 @@
 @section('title', 'Resep Farmasi')
 
 @section('content')
-    <x-page-header title="Resep" description="Proses resep dari dokter hingga obat diserahkan kepada pasien." icon="bi-file-earmark-medical">
-        <x-slot:actions>
-            <form method="GET" class="d-flex gap-2 flex-wrap">
-                <input type="search" name="q" value="{{ $filters['q'] ?? '' }}" class="form-control form-control-sm"
+    <x-page-header title="Resep" description="Proses resep dari dokter hingga obat diserahkan kepada pasien." icon="bi-file-earmark-medical" />
+
+    <x-card class="mb-3">
+        <form method="GET" class="row g-2 align-items-end">
+            <div class="col-lg-3">
+                <label class="form-label small mb-1" for="q">Cari Resep</label>
+                <input type="search" name="q" id="q" value="{{ $filters['q'] ?? '' }}" class="form-control form-control-sm"
                        placeholder="Kode resep atau pasien" aria-label="Cari" data-search-submit>
-                <select name="status" class="form-select form-select-sm" aria-label="Status">
+            </div>
+            <div class="col-lg-2">
+                <label class="form-label small mb-1" for="status">Status</label>
+                <select name="status" id="status" class="form-select form-select-sm" aria-label="Status">
                     <option value="">Semua Status</option>
                     @foreach ($statuses as $value => $label)
                         <option value="{{ $value }}" @selected(($filters['status'] ?? '') === $value)>{{ $label }}</option>
                     @endforeach
                 </select>
-                <select name="doctor_id" class="form-select form-select-sm" aria-label="Dokter">
+            </div>
+            <div class="col-lg-2">
+                <label class="form-label small mb-1" for="doctor_id">Dokter</label>
+                <select name="doctor_id" id="doctor_id" class="form-select form-select-sm" aria-label="Dokter">
                     <option value="">Semua Dokter</option>
                     @foreach ($doctors as $doctor)
                         <option value="{{ $doctor->id }}" @selected((string) ($filters['doctor_id'] ?? '') === (string) $doctor->id)>{{ $doctor->name }}</option>
                     @endforeach
                 </select>
-                <input type="date" name="from" value="{{ $filters['from'] ?? '' }}" class="form-control form-control-sm"
-                       aria-label="Dari" title="Dari tanggal">
-                <input type="date" name="to" value="{{ $filters['to'] ?? '' }}" class="form-control form-control-sm"
-                       aria-label="Sampai" title="Sampai tanggal">
-                <button class="btn btn-light border btn-sm" type="submit">Terapkan</button>
-            </form>
-        </x-slot:actions>
-    </x-page-header>
+            </div>
+            <div class="col-lg-3">
+                <label class="form-label small mb-1">Periode</label>
+                <div class="input-group input-group-sm">
+                    <input type="date" name="from" value="{{ $filters['from'] ?? '' }}" class="form-control" title="Dari tanggal" aria-label="Dari">
+                    <input type="date" name="to" value="{{ $filters['to'] ?? '' }}" class="form-control" title="Sampai tanggal" aria-label="Sampai">
+                </div>
+            </div>
+            <div class="col-lg-2 d-flex gap-2">
+                <button class="btn btn-primary btn-sm flex-grow-1" type="submit"><i class="bi bi-funnel me-1"></i>Terapkan</button>
+                <a href="{{ route('pharmacy.prescriptions.index') }}" class="btn btn-light border btn-sm">Reset</a>
+            </div>
+        </form>
+    </x-card>
 
     <div class="row g-3 mb-3">
         @foreach ($statuses as $value => $label)

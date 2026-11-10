@@ -27,7 +27,7 @@
 
     <x-card class="mb-3">
         <form method="GET" class="row g-2 align-items-end">
-            <div class="col-lg-4">
+            <div class="col-md-5 col-lg-4">
                 <label class="form-label small mb-1" for="status">Status</label>
                 <select name="status" id="status" class="form-select form-select-sm">
                     <option value="">Semua Status</option>
@@ -36,8 +36,8 @@
                     @endforeach
                 </select>
             </div>
-            <div class="col-lg-8 d-flex gap-2">
-                <button class="btn btn-primary btn-sm" type="submit"><i class="bi bi-funnel me-1"></i>Terapkan</button>
+            <div class="col-md-4 col-lg-3 d-flex gap-2">
+                <button class="btn btn-primary btn-sm flex-grow-1" type="submit"><i class="bi bi-funnel me-1"></i>Terapkan</button>
                 @if ($filters['status'] ?? null)
                     <a href="{{ route('patient.queue.index') }}" class="btn btn-light border btn-sm">Reset</a>
                 @endif

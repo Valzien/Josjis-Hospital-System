@@ -19,25 +19,28 @@ class DashboardController extends Controller
         $today = now()->toDateString();
         $summary = Queue::statusSummaryForToday($doctor?->id);
 
+        $readyQueues = Queue::query()
+            ->with('patient')
+            ->forDoctor($doctor?->id ?? 0)
+            ->onDate($today)
+            ->where('status', QueueStatus::Called->value)
+            ->orderBy('queue_number')
+            ->limit(8)
+            ->get();
+
         return view('doctor.dashboard', [
             'doctor' => $doctor,
             'summary' => $summary,
-            'waitingQueues' => Queue::query()
-                ->with('patient')
-                ->forDoctor($doctor?->id ?? 0)
-                ->onDate($today)
-                ->where('status', QueueStatus::Waiting->value)
-                ->orderBy('queue_number')
-                ->limit(8)
-                ->get(),
+            'waitingQueues' => $readyQueues,
+            'readyQueues' => $readyQueues,
             'currentQueue' => Queue::query()
                 ->with(['patient', 'medicalRecord.prescription'])
                 ->forDoctor($doctor?->id ?? 0)
                 ->onDate($today)
-                ->whereIn('status', [QueueStatus::Called->value, QueueStatus::InExamination->value])
+                ->where('status', QueueStatus::InExamination->value)
                 ->orderByDesc('queue_number')
                 ->first(),
-            'nextUp' => $queueService->upcoming($doctor?->id ?? 0, $today, 5),
+            'nextUp' => $queueService->upcoming($doctor?->id ?? 0, $today, 5, QueueStatus::Called),
             'todaySchedules' => DoctorSchedule::query()
                 ->with('doctor')
                 ->forDoctor($doctor?->id ?? 0)
@@ -58,7 +61,8 @@ class DashboardController extends Controller
                 ->count(),
             'totalRecords' => MedicalRecord::query()->where('doctor_id', $doctor?->id)->count(),
             'totalPrescriptions' => Prescription::query()->where('doctor_id', $doctor?->id)->count(),
-            'waitingCount' => $summary[QueueStatus::Waiting->value] ?? 0,
+            'waitingCount' => $summary[QueueStatus::Called->value] ?? 0,
+            'calledCount' => $summary[QueueStatus::Called->value] ?? 0,
             'completedCount' => $summary[QueueStatus::Completed->value] ?? 0,
         ]);
     }

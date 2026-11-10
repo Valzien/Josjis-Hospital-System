@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\AuditLog;
+use App\Models\Pharmacist;
+use App\Models\Receptionist;
 use App\Models\User;
 use App\Services\ReportService;
 
@@ -20,7 +22,9 @@ class AdminPagesTest extends SmokeTestCase
             route('admin.doctors.index'),
             route('admin.doctors.create'),
             route('admin.pharmacists.index'),
+            route('admin.pharmacists.create'),
             route('admin.receptionists.index'),
+            route('admin.receptionists.create'),
             route('admin.patients.index'),
             route('admin.patients.create'),
             route('admin.schedules.index'),
@@ -40,6 +44,8 @@ class AdminPagesTest extends SmokeTestCase
         $this->assertPagesRender([
             route('admin.doctors.show', $data['doctor']),
             route('admin.doctors.edit', $data['doctor']),
+            route('admin.pharmacists.edit', Pharmacist::factory()->create()),
+            route('admin.receptionists.edit', Receptionist::factory()->create()),
             route('admin.patients.show', $data['patient']),
             route('admin.patients.edit', $data['patient']),
             route('admin.audit-logs.show', AuditLog::factory()->create()),

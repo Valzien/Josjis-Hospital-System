@@ -37,21 +37,21 @@
 
     <div class="row g-3 mb-3">
         <div class="col-xl-8">
-            <x-card title="Pasien Baru 12 Bulan Terakhir" subtitle=" Tren pendaftaran pasien" icon="bi-graph-up-arrow">
+            <x-card class="h-100" title="Pasien Baru 12 Bulan Terakhir" subtitle="Tren pendaftaran pasien" icon="bi-graph-up-arrow">
                 <div style="min-height:280px">
-                    <canvas id="chartPatients"></canvas>
+                    <div id="chartPatients"></div>
                 </div>
             </x-card>
         </div>
 
         <div class="col-xl-4">
-            <x-card title="Status Antrean Hari Ini" icon="bi-pie-chart">
+            <x-card class="h-100" title="Status Antrean Hari Ini" icon="bi-pie-chart">
                 <ul class="list-unstyled mb-0">
                     @foreach (\App\Enums\QueueStatus::cases() as $status)
                         @php $total = (int) ($queueStatus[$status->value] ?? 0); @endphp
                         <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
                             <span class="small"><x-status-badge :status="$status" /></span>
-                            <span class="badge text-bg-light">{{ $total }}</span>
+                            <span class="badge text-bg-light border fw-semibold">{{ $total }}</span>
                         </li>
                     @endforeach
                 </ul>
@@ -60,79 +60,80 @@
     </div>
 
     <div class="row g-3">
-        <div class="col-xl-6">
-            <x-card title="Antrean Hari Ini" icon="bi-list-ol">
+        <div class="col-xl-4 col-lg-6">
+            <x-card class="h-100" title="Dokter Teramai" subtitle="Jumlah pemeriksaan pasien" icon="bi-heart-pulse">
+                <x-slot:actions>
+                    <a href="{{ route('admin.doctors.index') }}" class="btn btn-sm btn-light border">Dokter</a>
+                </x-slot:actions>
+                <div style="max-height: 350px; overflow-y: auto;">
+                    <ul class="list-unstyled mb-0">
+                        @forelse ($topDoctors as $doctor)
+                            <li class="d-flex justify-content-between align-items-center py-2.5 border-bottom">
+                                <div class="d-flex align-items-center gap-2 min-w-0">
+                                    <x-avatar :name="$doctor->name" size="sm" />
+                                    <div class="min-w-0">
+                                        <div class="small fw-semibold text-truncate">{{ $doctor->name }}</div>
+                                        <div class="fs-7 text-muted-2 text-truncate">{{ $doctor->specialization }}</div>
+                                    </div>
+                                </div>
+                                <span class="badge text-bg-light border text-nowrap">{{ $doctor->medical_records_count }} periksa</span>
+                            </li>
+                        @empty
+                            <li><x-empty-state icon="bi-heart-pulse" title="Belum ada data dokter" /></li>
+                        @endforelse
+                    </ul>
+                </div>
+            </x-card>
+        </div>
+
+        <div class="col-xl-4 col-lg-6">
+            <x-card class="h-100" title="Antrean Hari Ini" icon="bi-list-ol">
                 <x-slot:actions>
                     <a href="{{ route('admin.reports.index', ['report' => 'queues']) }}" class="btn btn-sm btn-light border">Laporan</a>
                 </x-slot:actions>
-                <ul class="list-unstyled mb-0">
-                    @forelse ($todayQueues as $queue)
-                        <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                            <div class="d-flex align-items-center gap-2 min-w-0">
-                                <span class="badge text-bg-primary">{{ $queue->queue_number }}</span>
-                                <div class="min-w-0">
-                                    <div class="small fw-semibold text-truncate">{{ $queue->patient->name }}</div>
-                                    <div class="fs-7 text-muted-2 text-truncate">{{ $queue->doctor->name }}</div>
+                <div style="max-height: 350px; overflow-y: auto;">
+                    <ul class="list-unstyled mb-0">
+                        @forelse ($todayQueues as $queue)
+                            <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                <div class="d-flex align-items-center gap-2 min-w-0">
+                                    <span class="badge text-bg-primary">{{ $queue->queue_number }}</span>
+                                    <div class="min-w-0">
+                                        <div class="small fw-semibold text-truncate">{{ $queue->patient->name }}</div>
+                                        <div class="fs-7 text-muted-2 text-truncate">{{ $queue->doctor->name }}</div>
+                                    </div>
                                 </div>
-                            </div>
-                            <x-status-badge :status="$queue->status" />
-                        </li>
-                    @empty
-                        <li><x-empty-state icon="bi-list-ol" title="Belum ada antrean" text="Tidak ada antrean pada hari ini." /></li>
-                    @endforelse
-                </ul>
+                                <x-status-badge :status="$queue->status" />
+                            </li>
+                        @empty
+                            <li><x-empty-state icon="bi-list-ol" title="Belum ada antrean" text="Tidak ada antrean pada hari ini." /></li>
+                        @endforelse
+                    </ul>
+                </div>
             </x-card>
         </div>
 
-        <div class="col-xl-6">
-            <x-card title="Aktivitas Terbaru" icon="bi-clock-history">
+        <div class="col-xl-4 col-lg-12">
+            <x-card class="h-100" title="Aktivitas Terbaru" icon="bi-clock-history">
                 <x-slot:actions>
                     <a href="{{ route('admin.audit-logs.index') }}" class="btn btn-sm btn-light border">Audit Log</a>
                 </x-slot:actions>
-                <ul class="list-unstyled mb-0">
-                    @forelse ($recentActivities as $activity)
-                        <li class="d-flex gap-3 py-2 border-bottom">
-                            <span class="jhs-stat-icon jhs-icon-soft-{{ $activity->moduleBadge() }}" style="width:32px;height:32px;font-size:.85rem;border-radius:10px">
-                                <i class="bi {{ $activity->moduleIcon() }}"></i>
-                            </span>
-                            <div class="flex-grow-1 min-w-0">
-                                <div class="small text-truncate">{{ $activity->description }}</div>
-                                <div class="fs-7 text-muted-2">{{ $activity->user->name ?? 'Sistem' }}</div>
-                            </div>
-                            <div class="fs-7 text-muted-2 text-nowrap">{{ $activity->created_at?->diffForHumans() }}</div>
-                        </li>
-                    @empty
-                        <li><x-empty-state icon="bi-clock-history" title="Belum ada aktivitas" /></li>
-                    @endforelse
-                </ul>
-            </x-card>
-        </div>
-
-        <div class="col-xl-6">
-            <x-card title="Dokter Teramai Dilayani" subtitle="Berdasarkan jumlah pemeriksaan" icon="bi-heart-pulse">
-                <ul class="list-unstyled mb-0">
-                    @forelse ($topDoctors as $doctor)
-                        <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                            <div class="d-flex align-items-center gap-2">
-                                <x-avatar :name="$doctor->name" size="sm" />
-                                <div>
-                                    <div class="small fw-semibold">{{ $doctor->name }}</div>
-                                    <div class="fs-7 text-muted-2">{{ $doctor->specialization }}</div>
+                <div style="max-height: 350px; overflow-y: auto;">
+                    <ul class="list-unstyled mb-0">
+                        @forelse ($recentActivities as $activity)
+                            <li class="d-flex gap-2.5 py-2 border-bottom">
+                                <span class="jhs-stat-icon jhs-icon-soft-{{ $activity->moduleBadge() }}" style="width:30px;height:30px;font-size:.8rem;border-radius:8px">
+                                    <i class="bi {{ $activity->moduleIcon() }}"></i>
+                                </span>
+                                <div class="flex-grow-1 min-w-0">
+                                    <div class="small text-truncate">{{ $activity->description }}</div>
+                                    <div class="fs-7 text-muted-2">{{ $activity->user->name ?? 'Sistem' }}</div>
                                 </div>
-                            </div>
-                            <span class="badge text-bg-light">{{ $doctor->medical_records_count }} pemeriksaan</span>
-                        </li>
-                    @empty
-                        <li><x-empty-state icon="bi-heart-pulse" title="Belum ada data dokter" /></li>
-                    @endforelse
-                </ul>
-            </x-card>
-        </div>
-
-        <div class="col-xl-6">
-            <x-card title="Spesialisasi Terlayani" subtitle="30 hari terakhir" icon="bi-clipboard2-data">
-                <div style="min-height:260px">
-                    <canvas id="chartServices"></canvas>
+                                <div class="fs-7 text-muted-2 text-nowrap">{{ $activity->created_at?->diffForHumans() }}</div>
+                            </li>
+                        @empty
+                            <li><x-empty-state icon="bi-clock-history" title="Belum ada aktivitas" /></li>
+                        @endforelse
+                    </ul>
                 </div>
             </x-card>
         </div>
@@ -140,31 +141,17 @@
 @endsection
 
 @push('scripts')
+    <script src="{{ asset('vendor/apexcharts/js/apexcharts.min.js') }}"></script>
     <script>
         window.jhsChart('chartPatients', {
+            type: 'area',
             labels: @json(array_column($monthlyPatients, 'period')),
             datasets: [{
                 label: 'Pasien Baru',
                 data: @json(array_column($monthlyPatients, 'total')),
                 borderColor: '#0d6efd',
                 backgroundColor: 'rgba(13,110,253,.12)',
-                fill: true,
-                tension: .35,
-                borderWidth: 2,
-                pointRadius: 3,
             }]
-        });
-
-        window.jhsChart('chartServices', {
-            type: 'doughnut',
-            labels: @json($serviceDistribution->pluck('specialization')->all()),
-            datasets: [{
-                data: @json($serviceDistribution->pluck('total')->all()),
-                backgroundColor: ['#0d6efd', '#20c997', '#ffc107', '#dc3545', '#6f42c1', '#0dcaf0'],
-            }]
-        }, {
-            legend: {position: 'bottom'},
-            cutout: '62%'
         });
     </script>
 @endpush

@@ -44,8 +44,6 @@ class DemoSeeder extends Seeder
             $this->seedMedicines();
             $this->seedPatients();
         });
-
-        $this->seedServiceHistory();
     }
 
     /* ------------------------------------------------------------- Akun */
@@ -118,7 +116,7 @@ class DemoSeeder extends Seeder
 
     private function seedSchedules(): void
     {
-        $days = [Day::Monday, Day::Tuesday, Day::Wednesday, Day::Thursday, Day::Friday, Day::Saturday];
+        $days = [Day::Sunday, Day::Monday, Day::Tuesday, Day::Wednesday, Day::Thursday, Day::Friday, Day::Saturday];
 
         foreach (Doctor::query()->get() as $index => $doctor) {
             foreach ($days as $dayIndex => $day) {
@@ -190,255 +188,22 @@ class DemoSeeder extends Seeder
     {
         $password = Hash::make('password');
 
-        $patients = [
-            ['email' => 'pasien@josjis.test', 'name' => 'Dewi Lestari', 'gender' => 'P', 'birth_date' => '1995-04-12', 'nik' => '3273014504120001', 'blood_type' => 'O', 'phone' => '081300000001', 'address' => 'Jl. Melati No. 21, Bandung'],
-            ['email' => 'budi@josjis.test', 'name' => 'Budi Santoso', 'gender' => 'L', 'birth_date' => '1988-09-30', 'nik' => '3273010909880002', 'blood_type' => 'A', 'phone' => '081300000002', 'address' => 'Jl. Kenanga No. 8, Bandung'],
-            ['email' => 'citra@josjis.test', 'name' => 'Citra Ayu', 'gender' => 'P', 'birth_date' => '2001-02-18', 'nik' => '3273015502980003', 'blood_type' => 'B', 'phone' => '081300000003', 'address' => 'Jl. Mawar No. 45, Bandung'],
-            ['email' => 'rizky@josjis.test', 'name' => 'Rizky Ramadhan', 'gender' => 'L', 'birth_date' => '1992-11-05', 'nik' => '3273010511920004', 'blood_type' => 'AB', 'phone' => '081300000004', 'address' => 'Jl. Anggrek No. 12, Bandung'],
-        ];
+        $user = $this->upsertUser('Dewi Lestari', 'pasien@josjis.test', 'patient', $password);
 
-        foreach ($patients as $data) {
-            $user = $this->upsertUser($data['name'], $data['email'], 'patient', $password);
-
-            Patient::updateOrCreate(
-                ['user_id' => $user->id],
-                [
-                    'medical_record_number' => $this->numbers->patientNumber(),
-                    'nik' => $data['nik'],
-                    'name' => $data['name'],
-                    'gender' => $data['gender'],
-                    'birth_date' => $data['birth_date'],
-                    'phone' => $data['phone'],
-                    'address' => $data['address'],
-                    'blood_type' => $data['blood_type'],
-                    'emergency_contact_name' => 'Keluarga',
-                    'emergency_contact_phone' => '081300000099',
-                ],
-            );
-        }
-
-        // Pasien tanpa akun, dibuat langsung oleh resepsionis.
-        $guests = [
-            ['Agus Setiawan', 'L', '1979-06-21', '3273012106790005', 'O-', '081300000010', 'Jl. Flamboyan No. 3, Cimahi'],
-            ['Nur Hasanah', 'P', '1996-01-09', '3273014901960006', 'B-', '081300000011', 'Jl. Cendana No. 17, Bandung'],
-        ];
-
-        foreach ($guests as [$name, $gender, $birthDate, $nik, $bloodType, $phone, $address]) {
-            Patient::updateOrCreate(
-                ['nik' => $nik],
-                [
-                    'user_id' => null,
-                    'medical_record_number' => $this->numbers->patientNumber(),
-                    'name' => $name,
-                    'gender' => $gender,
-                    'birth_date' => $birthDate,
-                    'phone' => $phone,
-                    'address' => $address,
-                    'blood_type' => $bloodType,
-                    'emergency_contact_name' => 'Keluarga',
-                    'emergency_contact_phone' => '081300000098',
-                ],
-            );
-        }
-    }
-
-    /* ------------------------------------------------- Riwayat layanan */
-
-    private function seedServiceHistory(): void
-    {
-        if (Queue::query()->exists()) {
-            return;
-        }
-
-        $doctors = Doctor::query()->orderBy('id')->get();
-        $patients = Patient::query()->orderBy('id')->get();
-        $medicines = Medicine::query()->orderBy('id')->get();
-        $receptionUser = User::query()->where('role', 'receptionist')->first();
-        $pharmacistUser = User::query()->where('role', 'pharmacist')->first();
-
-        if ($doctors->isEmpty() || $patients->isEmpty() || $medicines->isEmpty()) {
-            return;
-        }
-
-        // Enam encounter pada hari-hari sebelumnya agar grafik laporan terisi.
-        for ($day = 6; $day >= 1; $day--) {
-            $date = now()->subDays($day);
-            $dateString = $date->toDateString();
-
-            foreach ($doctors->values() as $doctorIndex => $doctor) {
-                $perDoctor = 2 + ($doctorIndex % 2);
-
-                for ($i = 1; $i <= $perDoctor; $i++) {
-                    $patient = $patients->random();
-                    $number = sprintf('A-%03d', ($doctorIndex * 10) + $i);
-
-                    if (Queue::query()
-                        ->where('doctor_id', $doctor->id)
-                        ->whereDate('queue_date', $dateString)
-                        ->where('queue_number', $number)
-                        ->exists()) {
-                        continue;
-                    }
-
-                    $calledAt = $date->copy()->setTime(9, $i * 5);
-
-                    $queue = Queue::create([
-                        'patient_id' => $patient->id,
-                        'doctor_id' => $doctor->id,
-                        'doctor_schedule_id' => $doctor->schedules()->where('day', $date->dayOfWeek)->value('id'),
-                        'queue_number' => $number,
-                        'queue_date' => $dateString,
-                        'status' => QueueStatus::Completed->value,
-                        'called_at' => $calledAt,
-                        'started_at' => $calledAt->copy()->addMinutes(3),
-                        'completed_at' => $calledAt->copy()->addMinutes(12),
-                        'complaint_note' => 'Keluhan sejak dua hari.',
-                        'created_by' => $receptionUser?->id,
-                    ]);
-
-                    $record = MedicalRecord::create([
-                        'record_number' => $this->numbers->medicalRecordNumber(),
-                        'patient_id' => $patient->id,
-                        'doctor_id' => $doctor->id,
-                        'queue_id' => $queue->id,
-                        'complaint' => 'Keluhan yang dibawa pasien.',
-                        'examination_result' => 'Kondisi umum baik.',
-                        'diagnosis' => 'Diagnosis sementara',
-                        'treatment' => 'Perawatan dan kontrol ulang.',
-                        'temperature' => 37.2,
-                        'blood_pressure' => 120.0,
-                        'weight' => 65,
-                        'height' => 170.0,
-                        'examined_at' => $queue->completed_at,
-                    ]);
-
-                    if ($i % 2 === 0) {
-                        $this->attachPrescription($record, $doctor, $medicines, $pharmacistUser, PrescriptionStatus::Completed);
-                    } elseif ($i % 3 === 0) {
-                        $this->attachPrescription($record, $doctor, $medicines, $pharmacistUser, PrescriptionStatus::Ready);
-                    } elseif ($i % 3 === 1) {
-                        $this->attachPrescription($record, $doctor, $medicines, $pharmacistUser, PrescriptionStatus::Pending);
-                    }
-                }
-            }
-        }
-
-        // Antrean aktif hari ini agar dashboard tidak kosong.
-        foreach ($doctors->take(2) as $doctorIndex => $doctor) {
-            $schedule = $doctor->schedules()->where('day', now()->dayOfWeek)->first();
-
-            if (! $schedule) {
-                continue;
-            }
-
-            for ($i = 1; $i <= 3; $i++) {
-                $patient = $patients->random();
-                $number = sprintf('A-%03d', ($doctorIndex * 10) + $i);
-
-                if (Queue::query()
-                    ->where('doctor_id', $doctor->id)
-                    ->whereDate('queue_date', now()->toDateString())
-                    ->where('queue_number', $number)
-                    ->exists()) {
-                    continue;
-                }
-
-                $status = match ($i) {
-                    1 => QueueStatus::InExamination,
-                    2 => QueueStatus::Called,
-                    default => QueueStatus::Waiting,
-                };
-
-                Queue::create([
-                    'patient_id' => $patient->id,
-                    'doctor_id' => $doctor->id,
-                    'doctor_schedule_id' => $schedule->id,
-                    'queue_number' => $number,
-                    'queue_date' => now()->toDateString(),
-                    'status' => $status->value,
-                    'called_at' => $status === QueueStatus::Waiting ? null : now()->subMinutes(10 * $i),
-                    'started_at' => $status === QueueStatus::InExamination ? now()->subMinutes(5) : null,
-                    'completed_at' => null,
-                    'complaint_note' => null,
-                    'created_by' => $receptionUser?->id,
-                ]);
-            }
-        }
-
-        // Satu antrean menunggu tanpa rekam medis, siap diperiksa dokter.
-        $waitingQueue = Queue::query()
-            ->whereDate('queue_date', now()->toDateString())
-            ->where('status', QueueStatus::Waiting->value)
-            ->orderBy('id')
-            ->first();
-
-        if ($waitingQueue) {
-            MedicalRecord::create([
-                'record_number' => $this->numbers->medicalRecordNumber(),
-                'patient_id' => $waitingQueue->patient_id,
-                'doctor_id' => $waitingQueue->doctor_id,
-                'queue_id' => $waitingQueue->id,
-                'complaint' => '',
-                'examined_at' => null,
-            ]);
-        }
-    }
-
-    private function attachPrescription(MedicalRecord $record, Doctor $doctor, $medicines, ?User $pharmacist, PrescriptionStatus $status): void
-    {
-        $prescription = Prescription::create([
-            'code' => $this->numbers->prescriptionCode(),
-            'medical_record_id' => $record->id,
-            'patient_id' => $record->patient_id,
-            'doctor_id' => $doctor->id,
-            'status' => PrescriptionStatus::Pending->value,
-            'notes' => 'Diminum sesuai anjuran dokter.',
-            'total_price' => 0,
-        ]);
-
-        $details = $medicines->random(min(3, max(1, $medicines->count())));
-        $total = 0;
-
-        foreach ($details as $medicine) {
-            $quantity = random_int(1, 3);
-            $subtotal = (float) $medicine->price * $quantity;
-
-            PrescriptionDetail::create([
-                'prescription_id' => $prescription->id,
-                'medicine_id' => $medicine->id,
-                'quantity' => $quantity,
-                'dosage' => '500 mg',
-                'instructions' => 'Diminum tiga kali sehari setelah makan.',
-                'price' => $medicine->price,
-                'subtotal' => $subtotal,
-            ]);
-
-            $total += $subtotal;
-
-            if (in_array($status, [PrescriptionStatus::Ready, PrescriptionStatus::Completed], true)) {
-                $stockBefore = (int) $medicine->stock;
-                $stockAfter = max(0, $stockBefore - $quantity);
-
-                $medicine->update(['stock' => $stockAfter]);
-
-                $medicine->transactions()->create([
-                    'type' => TransactionType::Out->value,
-                    'quantity' => -$quantity,
-                    'stock_before' => $stockBefore,
-                    'stock_after' => $stockAfter,
-                    'reference_type' => 'prescription',
-                    'reference_id' => $prescription->id,
-                    'notes' => 'Penyerahan resep '.$prescription->code.'.',
-                    'user_id' => $pharmacist?->id,
-                ]);
-            }
-        }
-
-        $prescription->update([
-            'total_price' => $total,
-            'status' => $status->value,
-            'processed_at' => $status === PrescriptionStatus::Pending ? null : now()->subHours(random_int(1, 20)),
-            'processed_by' => $status === PrescriptionStatus::Pending ? null : $pharmacist?->id,
-        ]);
+        Patient::updateOrCreate(
+            ['user_id' => $user->id],
+            [
+                'medical_record_number' => $this->numbers->patientNumber(),
+                'nik' => '3273014504120001',
+                'name' => 'Dewi Lestari',
+                'gender' => 'P',
+                'birth_date' => '1995-04-12',
+                'phone' => '081300000001',
+                'address' => 'Jl. Melati No. 21, Bandung',
+                'blood_type' => 'O',
+                'emergency_contact_name' => 'Keluarga',
+                'emergency_contact_phone' => '081300000099',
+            ],
+        );
     }
 }

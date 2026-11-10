@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\QueueStatus;
 use App\Models\Doctor;
 use App\Models\DoctorSchedule;
 use App\Models\MedicalRecord;
@@ -31,7 +32,7 @@ class DoctorPagesTest extends SmokeTestCase
         $schedule = DoctorSchedule::factory()->openAllDay()->for($doctor)->create();
         $patient = Patient::factory()->create();
 
-        $queue = Queue::factory()->create([
+        $queue = Queue::factory()->called()->create([
             'patient_id' => $patient->id,
             'doctor_id' => $doctor->id,
             'doctor_schedule_id' => $schedule->id,
@@ -114,6 +115,21 @@ class DoctorPagesTest extends SmokeTestCase
         $this->assertDatabaseMissing('audit_logs', [
             'description' => 'Memulai pemeriksaan antrean '.$queue->queue_number.'.',
         ]);
+    }
+
+    public function test_doctor_cannot_start_examination_if_queue_is_waiting(): void
+    {
+        [, $doctor] = $this->actingDoctor();
+
+        $schedule = DoctorSchedule::factory()->openAllDay()->for($doctor)->create();
+        $queue = Queue::factory()->waiting()->create([
+            'doctor_id' => $doctor->id,
+            'doctor_schedule_id' => $schedule->id,
+        ]);
+
+        $this->get(route('doctor.examinations.create', $queue))->assertForbidden();
+        $this->post(route('doctor.queues.start', $queue))->assertRedirect();
+        $this->assertSame(QueueStatus::Waiting, $queue->fresh()->status);
     }
 
     public function test_examination_and_prescription_print_render(): void

@@ -173,7 +173,7 @@ return [
             ['label' => 'Jadwal Dokter', 'route' => 'patient.schedules.index', 'icon' => 'bi-calendar-week'],
             ['section' => 'Rekam', 'label' => 'Riwayat Pemeriksaan', 'route' => 'patient.history.index', 'icon' => 'bi-journal-medical'],
             ['label' => 'Resep Saya', 'route' => 'patient.prescriptions.index', 'icon' => 'bi-file-earmark-medical'],
-            ['label' => 'Obat Diberikan', 'route' => 'patient.medicines.index', 'icon' => 'bi-capsule'],
+            ['label' => 'Obat Saya', 'route' => 'patient.medicines.index', 'icon' => 'bi-capsule'],
             ['section' => 'Akun', 'label' => 'Profil Saya', 'route' => 'patient.profile.edit', 'icon' => 'bi-person-gear'],
         ],
     ],

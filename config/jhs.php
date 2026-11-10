@@ -35,6 +35,68 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Janji temu (booking) & kasir
+    |--------------------------------------------------------------------------
+    */
+    'booking' => [
+        'days_ahead' => (int) env('JHS_BOOKING_DAYS_AHEAD', 30),
+        'slot_minutes' => (int) env('JHS_BOOKING_SLOT_MINUTES', 30),
+    ],
+
+    'billing' => [
+        'consultation_fee' => (float) env('JHS_CONSULTATION_FEE', 75000),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Portal login staf (pasien tetap memakai /login)
+    |--------------------------------------------------------------------------
+    */
+    'staff_portals' => [
+        'admin' => [
+            'role' => UserRole::Admin,
+            'title' => 'Portal Administrator',
+            'subtitle' => 'Kelola pengguna, master data, laporan, dan audit sistem.',
+            'icon' => 'bi-shield-lock',
+            'color' => 'primary',
+            'demo' => 'Admin',
+        ],
+        'reception' => [
+            'role' => UserRole::Receptionist,
+            'title' => 'Portal Resepsionis',
+            'subtitle' => 'Registrasi pasien, janji temu, dan pengelolaan antrean.',
+            'icon' => 'bi-headset',
+            'color' => 'info',
+            'demo' => 'Resepsionis',
+        ],
+        'doctor' => [
+            'role' => UserRole::Doctor,
+            'title' => 'Portal Dokter',
+            'subtitle' => 'Antrean praktik, pemeriksaan, rekam medis, dan resep.',
+            'icon' => 'bi-heart-pulse',
+            'color' => 'success',
+            'demo' => 'Dokter',
+        ],
+        'pharmacy' => [
+            'role' => UserRole::Pharmacist,
+            'title' => 'Portal Apoteker',
+            'subtitle' => 'Verifikasi resep, penyerahan obat, dan stok farmasi.',
+            'icon' => 'bi-capsule',
+            'color' => 'warning',
+            'demo' => 'Apoteker',
+        ],
+        'cashier' => [
+            'role' => UserRole::Cashier,
+            'title' => 'Portal Kasir',
+            'subtitle' => 'Tagihan kunjungan, pembayaran, dan penerimaan kas.',
+            'icon' => 'bi-cash-coin',
+            'color' => 'danger',
+            'demo' => 'Kasir',
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Akun demo (hanya untuk lingkungan pengembangan / demo)
     |--------------------------------------------------------------------------
     |
@@ -49,6 +111,7 @@ return [
         'Resepsionis' => ['email' => 'resepsionis@josjis.test', 'password' => 'password'],
         'Dokter' => ['email' => 'dokter@josjis.test', 'password' => 'password'],
         'Apoteker' => ['email' => 'apoteker@josjis.test', 'password' => 'password'],
+        'Kasir' => ['email' => 'kasir@josjis.test', 'password' => 'password'],
         'Pasien' => ['email' => 'pasien@josjis.test', 'password' => 'password'],
     ],
 
@@ -138,6 +201,7 @@ return [
             ['label' => 'Pasien', 'route' => 'admin.patients.index', 'icon' => 'bi-person-vcard'],
             ['label' => 'Jadwal Dokter', 'route' => 'admin.schedules.index', 'icon' => 'bi-calendar-week'],
             ['section' => 'Monitoring', 'label' => 'Laporan', 'route' => 'admin.reports.index', 'icon' => 'bi-graph-up-arrow'],
+            ['label' => 'Tagihan & Kasir', 'route' => 'cashier.invoices.index', 'icon' => 'bi-cash-coin'],
             ['label' => 'Audit Log', 'route' => 'admin.audit-logs.index', 'icon' => 'bi-shield-check'],
             ['section' => 'Sistem', 'label' => 'Pengaturan', 'route' => 'admin.settings.index', 'icon' => 'bi-gear'],
         ],
@@ -147,6 +211,7 @@ return [
             ['label' => 'Data Pasien', 'route' => 'reception.patients.index', 'icon' => 'bi-person-vcard'],
             ['label' => 'Antrean', 'route' => 'reception.queues.index', 'icon' => 'bi-list-ol', 'badge' => 'waiting'],
             ['label' => 'Papan Antrean', 'route' => 'reception.queues.board', 'icon' => 'bi-display'],
+            ['label' => 'Janji Temu', 'route' => 'reception.appointments.index', 'icon' => 'bi-calendar-check', 'badge' => 'appointments'],
             ['label' => 'Jadwal Dokter', 'route' => 'reception.schedules.index', 'icon' => 'bi-calendar-week'],
         ],
         UserRole::Doctor->value => [
@@ -165,15 +230,23 @@ return [
             ['label' => 'Stok Obat', 'route' => 'pharmacy.stock.index', 'icon' => 'bi-box-seam', 'badge' => 'low_stock'],
             ['label' => 'Transaksi Obat', 'route' => 'pharmacy.transactions.index', 'icon' => 'bi-arrow-left-right'],
         ],
+        UserRole::Cashier->value => [
+            ['section' => 'Utama', 'label' => 'Dashboard', 'route' => 'cashier.dashboard', 'icon' => 'bi-speedometer2'],
+            ['section' => 'Kasir', 'label' => 'Tagihan', 'route' => 'cashier.invoices.index', 'icon' => 'bi-receipt', 'badge' => 'unpaid'],
+            ['label' => 'Kunjungan Siap Ditagih', 'route' => 'cashier.invoices.pending', 'icon' => 'bi-clipboard2-check'],
+            ['label' => 'Pembayaran Hari Ini', 'route' => 'cashier.payments.index', 'icon' => 'bi-cash-stack'],
+        ],
         UserRole::Patient->value => [
             ['section' => 'Utama', 'label' => 'Dashboard', 'route' => 'patient.dashboard', 'icon' => 'bi-speedometer2'],
             ['section' => 'Pelayanan', 'label' => 'Ambil Antrean', 'route' => 'patient.queue.create', 'icon' => 'bi-ticket-perforated'],
             ['label' => 'Antrean Saya', 'route' => 'patient.queue.index', 'icon' => 'bi-list-ol'],
+            ['label' => 'Janji Temu', 'route' => 'patient.appointments.index', 'icon' => 'bi-calendar-check'],
             ['label' => 'Dokter', 'route' => 'patient.doctors.index', 'icon' => 'bi-heart-pulse'],
             ['label' => 'Jadwal Dokter', 'route' => 'patient.schedules.index', 'icon' => 'bi-calendar-week'],
             ['section' => 'Rekam', 'label' => 'Riwayat Pemeriksaan', 'route' => 'patient.history.index', 'icon' => 'bi-journal-medical'],
             ['label' => 'Resep Saya', 'route' => 'patient.prescriptions.index', 'icon' => 'bi-file-earmark-medical'],
             ['label' => 'Obat Saya', 'route' => 'patient.medicines.index', 'icon' => 'bi-capsule'],
+            ['label' => 'Tagihan Saya', 'route' => 'patient.invoices.index', 'icon' => 'bi-receipt'],
             ['section' => 'Akun', 'label' => 'Profil Saya', 'route' => 'patient.profile.edit', 'icon' => 'bi-person-gear'],
         ],
     ],

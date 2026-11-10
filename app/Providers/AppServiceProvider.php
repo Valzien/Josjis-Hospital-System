@@ -2,9 +2,13 @@
 
 namespace App\Providers;
 
+use App\Enums\AppointmentStatus;
+use App\Enums\InvoiceStatus;
 use App\Enums\PrescriptionStatus;
 use App\Enums\QueueStatus;
+use App\Models\Appointment;
 use App\Models\DoctorSchedule;
+use App\Models\Invoice;
 use App\Models\Medicine;
 use App\Models\Patient;
 use App\Models\Prescription;
@@ -85,6 +89,12 @@ class AppServiceProvider extends ServiceProvider
                     : 0,
                 'low_stock' => $user->isPharmacist()
                     ? Medicine::query()->active()->lowStock()->count()
+                    : 0,
+                'unpaid' => $user->isCashier() || $user->isAdmin()
+                    ? Invoice::query()->whereIn('status', InvoiceStatus::openValues())->count()
+                    : 0,
+                'appointments' => $user->isReceptionist()
+                    ? Appointment::query()->onDate($today)->status(AppointmentStatus::Booked)->count()
                     : 0,
             ];
         });

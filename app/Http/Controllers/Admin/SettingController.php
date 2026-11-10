@@ -25,6 +25,7 @@ class SettingController extends Controller
         'allow_patient_registration' => ['label' => 'Izinkan Pendaftaran Pasien Online', 'group' => 'sistem', 'type' => 'boolean'],
         'allow_online_queue' => ['label' => 'Izinkan Ambil Antrean Online', 'group' => 'sistem', 'type' => 'boolean'],
         'low_stock_alert' => ['label' => 'Tampilkan Peringatan Stok Rendah', 'group' => 'farmasi', 'type' => 'boolean'],
+        'consultation_fee' => ['label' => 'Biaya Konsultasi Dokter (Rp)', 'group' => 'kasir', 'type' => 'number'],
     ];
 
     public function __construct(private readonly AuditLogger $audit) {}
@@ -49,6 +50,7 @@ class SettingController extends Controller
                 'antrean' => ['title' => 'Pengaturan Antrean', 'icon' => 'bi-list-ol', 'desc' => 'Aturan pembentukan nomor antrean dan tampilan papan antrean.'],
                 'sistem' => ['title' => 'Pengaturan Sistem', 'icon' => 'bi-toggles', 'desc' => 'Fitur yang dapat diakses pasien secara mandiri.'],
                 'farmasi' => ['title' => 'Pengaturan Farmasi', 'icon' => 'bi-capsule', 'desc' => 'Notifikasi dan monitoring stok obat.'],
+                'kasir' => ['title' => 'Pengaturan Kasir', 'icon' => 'bi-cash-coin', 'desc' => 'Komponen biaya yang dipakai saat membuat tagihan kunjungan.'],
             ],
             'rawCount' => Setting::query()->count(),
         ]);

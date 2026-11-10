@@ -27,6 +27,7 @@ class DemoAccountGuardTest extends TestCase
         'resepsionis@josjis.test',
         'dokter@josjis.test',
         'apoteker@josjis.test',
+        'kasir@josjis.test',
         'pasien@josjis.test',
     ];
 
@@ -97,7 +98,19 @@ class DemoAccountGuardTest extends TestCase
         $this->get(route('login'))
             ->assertOk()
             ->assertSee('jhs-demo-credentials', false)
-            ->assertSee('resepsionis@josjis.test', false);
+            ->assertSee('pasien@josjis.test', false)
+            ->assertDontSee('resepsionis@josjis.test', false);
+    }
+
+    public function test_portal_staf_hanya_menampilkan_akun_demo_perannya(): void
+    {
+        config(['jhs.demo_credentials_enabled' => true]);
+
+        $this->get(route('cashier.login'))
+            ->assertOk()
+            ->assertSee('kasir@josjis.test', false)
+            ->assertDontSee('admin@josjis.test', false)
+            ->assertDontSee('pasien@josjis.test', false);
     }
 
     public function test_perintah_demo_off_mematikan_akun_demo_yang_sudah_ada(): void

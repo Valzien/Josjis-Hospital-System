@@ -4,18 +4,11 @@ namespace Database\Seeders;
 
 use App\Enums\ActiveStatus;
 use App\Enums\Day;
-use App\Enums\PrescriptionStatus;
-use App\Enums\QueueStatus;
-use App\Enums\TransactionType;
 use App\Models\Doctor;
 use App\Models\DoctorSchedule;
-use App\Models\MedicalRecord;
 use App\Models\Medicine;
 use App\Models\Patient;
 use App\Models\Pharmacist;
-use App\Models\Prescription;
-use App\Models\PrescriptionDetail;
-use App\Models\Queue;
 use App\Models\Receptionist;
 use App\Models\User;
 use App\Services\NumberGenerator;
@@ -56,6 +49,7 @@ class DemoSeeder extends Seeder
 
         $receptionUser = $this->upsertUser('Rina Puspita', 'resepsionis@josjis.test', 'receptionist', $password);
         $this->upsertUser('Bagus Wicaksono', 'apoteker@josjis.test', 'pharmacist', $password);
+        $this->upsertUser('Sinta Maharani', 'kasir@josjis.test', 'cashier', $password);
 
         Receptionist::updateOrCreate(
             ['user_id' => $receptionUser->id],

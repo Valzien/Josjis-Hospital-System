@@ -7,8 +7,8 @@
         <div class="d-inline-flex p-2 rounded-4 bg-primary bg-opacity-10 mb-3 shadow-xs">
             <img src="{{ asset('images/logo-icon.png') }}" alt="{{ config('jhs.name') }}" height="56" class="d-inline-block">
         </div>
-        <h1 class="h4 fw-bold mb-1">Masuk ke Sistem</h1>
-        <p class="text-secondary small mb-0">Silakan masukkan email dan kata sandi Anda</p>
+        <h1 class="h4 fw-bold mb-1">Masuk sebagai Pasien</h1>
+        <p class="text-secondary small mb-0">Gunakan akun pasien Anda untuk melihat antrean, janji temu, dan tagihan</p>
     </div>
 
     <form method="POST" action="{{ route('login') }}" novalidate>
@@ -54,7 +54,7 @@
         </div>
 
         <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold shadow-sm">
-            <i class="bi bi-box-arrow-in-right me-2"></i>Masuk ke Sistem
+            <i class="bi bi-box-arrow-in-right me-2"></i>Masuk sebagai Pasien
         </button>
     </form>
 
@@ -62,37 +62,33 @@
         <p class="small text-secondary mb-0">Belum punya akun pasien? <a href="{{ route('register') }}" class="fw-semibold text-primary text-decoration-none">Daftar sekarang</a></p>
     </div>
 
-    @if (config('jhs.demo_credentials_enabled'))
+    <div class="text-center mt-3">
+        <p class="small text-secondary mb-2"><i class="bi bi-shield-lock me-1"></i>Petugas rumah sakit masuk melalui portal masing-masing:</p>
+        <div class="d-flex flex-wrap justify-content-center gap-1">
+            @foreach (config('jhs.staff_portals') as $key => $item)
+                <a href="{{ route($key.'.login') }}" class="btn btn-sm btn-light border rounded-pill px-2 py-1 text-decoration-none">
+                    <i class="bi {{ $item['icon'] }} me-1"></i>{{ $item['role']->shortLabel() }}
+                </a>
+            @endforeach
+        </div>
+    </div>
+
+    @if (config('jhs.demo_credentials_enabled') && ($patientDemo = config('jhs.demo_accounts.Pasien')))
         <div class="jhs-demo-box jhs-demo-credentials mt-4">
             <div class="d-flex align-items-center justify-content-between mb-2">
                 <span class="small fw-bold text-dark">
-                    <i class="bi bi-person-badge text-primary me-1"></i>Akun Demo Uji Coba
+                    <i class="bi bi-person-badge text-primary me-1"></i>Akun Demo Pasien
                 </span>
                 <span class="badge bg-primary bg-opacity-10 text-primary" style="font-size: 0.68rem;">Klik untuk Isi Otomatis</span>
             </div>
-            <p class="text-secondary small mb-2" style="font-size: 0.76rem;">Pilih peran di bawah untuk login cepat saat demonstrasi / penilaian:</p>
-            <div class="d-flex flex-wrap gap-1">
-                @php
-                    $roleMeta = [
-                        'Admin' => ['icon' => 'bi-shield-lock-fill', 'color' => 'primary'],
-                        'Resepsionis' => ['icon' => 'bi-headset', 'color' => 'info'],
-                        'Dokter' => ['icon' => 'bi-heart-pulse-fill', 'color' => 'success'],
-                        'Apoteker' => ['icon' => 'bi-capsule', 'color' => 'warning'],
-                        'Pasien' => ['icon' => 'bi-person-fill', 'color' => 'secondary'],
-                    ];
-                @endphp
-                @foreach (config('jhs.demo_accounts') as $role => $account)
-                    @php $meta = $roleMeta[$role] ?? ['icon' => 'bi-person', 'color' => 'secondary']; @endphp
-                    <button type="button" class="jhs-demo-btn js-fill-demo"
-                            data-email="{{ $account['email'] }}" data-password="{{ $account['password'] }}"
-                            data-role="{{ $role }}">
-                        <i class="bi {{ $meta['icon'] }} text-{{ $meta['color'] }}"></i>
-                        <span>{{ $role }}</span>
-                    </button>
-                @endforeach
-            </div>
+            <p class="text-secondary small mb-2" style="font-size: 0.76rem;">Isi otomatis kredensial pasien untuk demonstrasi:</p>
+            <button type="button" class="jhs-demo-btn js-fill-demo w-100 justify-content-center"
+                    data-email="{{ $patientDemo['email'] }}" data-password="{{ $patientDemo['password'] }}">
+                <i class="bi bi-magic text-primary"></i>
+                <span>Isi {{ $patientDemo['email'] }}</span>
+            </button>
             <div id="demoSelectedHint" class="small text-primary mt-2 d-none" style="font-size: 0.74rem;">
-                <i class="bi bi-check-circle-fill me-1"></i>Akun <strong id="demoRoleName"></strong> terisi otomatis.
+                <i class="bi bi-check-circle-fill me-1"></i>Akun pasien terisi otomatis.
             </div>
         </div>
     @endif
@@ -115,7 +111,6 @@
 
     // Fill demo credentials
     const hintBox = document.getElementById('demoSelectedHint');
-    const roleNameSpan = document.getElementById('demoRoleName');
     document.querySelectorAll('.js-fill-demo').forEach(function (button) {
         button.addEventListener('click', function () {
             document.querySelectorAll('.js-fill-demo').forEach(b => b.classList.remove('active'));
@@ -124,8 +119,7 @@
             document.getElementById('email').value = button.dataset.email;
             document.getElementById('password').value = button.dataset.password;
 
-            if (hintBox && roleNameSpan) {
-                roleNameSpan.textContent = button.dataset.role;
+            if (hintBox) {
                 hintBox.classList.remove('d-none');
             }
         });

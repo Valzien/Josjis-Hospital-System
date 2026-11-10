@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\AppointmentStatus;
 use App\Enums\QueueStatus;
 use App\Models\DoctorSchedule;
 use App\Models\Patient;
@@ -148,6 +149,12 @@ class QueueService
         };
 
         $queue->update($payload);
+
+        if ($target === QueueStatus::Completed) {
+            $queue->appointment()
+                ->where('status', AppointmentStatus::CheckedIn->value)
+                ->update(['status' => AppointmentStatus::Completed->value]);
+        }
 
         return $queue->refresh();
     }

@@ -34,6 +34,21 @@ class NumberGenerator
         return $this->next($prefix);
     }
 
+    public function appointmentCode(): string
+    {
+        return $this->next('BK');
+    }
+
+    public function invoiceCode(): string
+    {
+        return $this->next('INV');
+    }
+
+    public function paymentCode(): string
+    {
+        return $this->next('PAY');
+    }
+
     public function patientNumberPreview(): string
     {
         return $this->peek('P');

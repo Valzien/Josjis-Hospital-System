@@ -50,6 +50,16 @@ class Patient extends Model
         return $this->hasMany(Prescription::class);
     }
 
+    public function appointments(): HasMany
+    {
+        return $this->hasMany(Appointment::class);
+    }
+
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class);
+    }
+
     /** @param  Builder<Patient>  $query */
     #[Scope]
     protected function search(Builder $query, ?string $term): void

@@ -36,6 +36,9 @@ class SettingSeeder extends Seeder
 
             // Farmasi
             ['key' => 'low_stock_alert', 'value' => '1'],
+
+            // Kasir
+            ['key' => 'consultation_fee', 'value' => '75000', 'group' => 'kasir', 'type' => 'number'],
         ];
 
         foreach ($settings as $setting) {
@@ -43,7 +46,13 @@ class SettingSeeder extends Seeder
                 continue;
             }
 
-            Setting::put($setting['key'], $setting['value'], 'umum');
+            Setting::put(
+                $setting['key'],
+                $setting['value'],
+                $setting['group'] ?? 'umum',
+                $setting['type'] ?? 'string',
+                $setting['label'] ?? null,
+            );
         }
     }
 }

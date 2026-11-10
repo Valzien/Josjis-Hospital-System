@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Cashier;
 use App\Http\Controllers\Doctor;
 use App\Http\Controllers\GlobalSearchController;
 use App\Http\Controllers\HomeController;
@@ -21,8 +22,27 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [HomeController::class, 'landing'])->name('landing');
 
 Route::middleware('guest')->group(function () {
-    Route::get('login', [LoginController::class, 'create'])->name('login');
-    Route::post('login', [LoginController::class, 'store'])->middleware('throttle:6,1');
+    /*
+     * Portal pasien: /login tetap khusus pasien.
+     */
+    Route::get('login', [LoginController::class, 'create'])
+        ->name('login')
+        ->defaults('portal', 'patient');
+    Route::post('login', [LoginController::class, 'store'])
+        ->middleware('throttle:6,1')
+        ->defaults('portal', 'patient');
+
+    /*
+     * Portal staf: setiap role punya halaman login sendiri.
+     */
+    foreach (array_keys(config('jhs.staff_portals', [])) as $portal) {
+        Route::get($portal.'/login', [LoginController::class, 'create'])
+            ->name($portal.'.login')
+            ->defaults('portal', $portal);
+        Route::post($portal.'/login', [LoginController::class, 'store'])
+            ->middleware('throttle:6,1')
+            ->defaults('portal', $portal);
+    }
 
     Route::get('register', [RegisterController::class, 'create'])->name('register');
     Route::post('register', [RegisterController::class, 'store'])->middleware('throttle:6,1');
@@ -117,6 +137,11 @@ Route::middleware(['auth', 'role:receptionist,admin'])
         Route::match(['post', 'patch'], 'queues/{queue}/restore', [Reception\QueueController::class, 'restore'])->name('queues.restore');
         Route::post('queues/close-stale', [Reception\QueueController::class, 'closeStale'])->name('queues.close-stale');
 
+        Route::get('appointments', [Reception\AppointmentController::class, 'index'])->name('appointments.index');
+        Route::match(['post', 'patch'], 'appointments/{appointment}/check-in', [Reception\AppointmentController::class, 'checkIn'])->name('appointments.check-in');
+        Route::match(['post', 'patch'], 'appointments/{appointment}/cancel', [Reception\AppointmentController::class, 'cancel'])->name('appointments.cancel');
+        Route::match(['post', 'patch'], 'appointments/{appointment}/no-show', [Reception\AppointmentController::class, 'noShow'])->name('appointments.no-show');
+
         Route::get('schedules', [Reception\ScheduleController::class, 'index'])->name('schedules.index');
     });
 
@@ -186,6 +211,29 @@ Route::middleware(['auth', 'role:pharmacist,admin'])
 
 /*
 |--------------------------------------------------------------------------
+| KASIR
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'role:cashier,admin'])
+    ->prefix('cashier')
+    ->name('cashier.')
+    ->group(function () {
+        Route::get('dashboard', Cashier\DashboardController::class)->name('dashboard');
+
+        Route::get('invoices', [Cashier\InvoiceController::class, 'index'])->name('invoices.index');
+        Route::get('invoices/pending', [Cashier\InvoiceController::class, 'pending'])->name('invoices.pending');
+        Route::get('invoices/create', [Cashier\InvoiceController::class, 'create'])->name('invoices.create');
+        Route::post('invoices', [Cashier\InvoiceController::class, 'store'])->name('invoices.store');
+        Route::get('invoices/{invoice}', [Cashier\InvoiceController::class, 'show'])->name('invoices.show');
+        Route::get('invoices/{invoice}/receipt', [Cashier\InvoiceController::class, 'receipt'])->name('invoices.receipt');
+        Route::post('invoices/{invoice}/payments', [Cashier\InvoiceController::class, 'storePayment'])->name('invoices.payments.store');
+        Route::post('invoices/{invoice}/cancel', [Cashier\InvoiceController::class, 'cancel'])->name('invoices.cancel');
+
+        Route::get('payments', [Cashier\PaymentController::class, 'index'])->name('payments.index');
+    });
+
+/*
+|--------------------------------------------------------------------------
 | PASIEN
 |--------------------------------------------------------------------------
 */
@@ -210,6 +258,14 @@ Route::middleware(['auth', 'role:patient'])
         Route::get('queue/{queue}', [Patient\QueueController::class, 'show'])->name('queue.show');
         Route::get('queue/{queue}/ticket', [Patient\QueueController::class, 'ticket'])->name('queue.ticket');
         Route::match(['post', 'patch'], 'queue/{queue}/cancel', [Patient\QueueController::class, 'cancel'])->name('queue.cancel');
+
+        Route::get('appointments', [Patient\AppointmentController::class, 'index'])->name('appointments.index');
+        Route::get('appointments/create', [Patient\AppointmentController::class, 'create'])->name('appointments.create');
+        Route::post('appointments', [Patient\AppointmentController::class, 'store'])->name('appointments.store');
+        Route::match(['post', 'patch'], 'appointments/{appointment}/cancel', [Patient\AppointmentController::class, 'cancel'])->name('appointments.cancel');
+
+        Route::get('invoices', [Patient\InvoiceController::class, 'index'])->name('invoices.index');
+        Route::get('invoices/{invoice}', [Patient\InvoiceController::class, 'show'])->name('invoices.show');
 
         Route::get('history', [Patient\HistoryController::class, 'index'])->name('history.index');
         Route::get('history/{record}', [Patient\HistoryController::class, 'show'])->name('history.show');

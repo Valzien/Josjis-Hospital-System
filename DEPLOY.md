@@ -94,10 +94,13 @@ melalui UI, bukan seeder.
 | Resepsionis | `resepsionis@josjis.test` | `password` |
 | Dokter | `dokter@josjis.test` | `password` |
 | Apoteker | `apoteker@josjis.test` | `password` |
+| Kasir | `kasir@josjis.test` | `password` |
 | Pasien | `pasien@josjis.test` | `password` |
 
 Baris di atas hanya berlaku di mesin pengembangan dengan
-`JHS_DEMO_CREDENTIALS=true`.
+`JHS_DEMO_CREDENTIALS=true`. Staf masuk lewat portal perannya
+(`/admin/login`, `/reception/login`, `/doctor/login`, `/pharmacy/login`,
+`/cashier/login`); pasien tetap lewat `/login`.
 
 #### Mematikan akun demo pada database yang sudah terlanjur ter-seed
 
@@ -106,7 +109,7 @@ php artisan jhs:demo-off --list   # lihat dulu, tanpa mengubah apa pun
 php artisan jhs:demo-off          # nonaktifkan + acak ulang sandi
 ```
 
-Perintah ini tidak menghapus data klinis, hanya menonaktifkan lima akun demo.
+Perintah ini tidak menghapus data klinis, hanya menonaktifkan enam akun demo.
 Opsi `--purge` menghapus akunnya permanen; pakai hanya bila data klinis yang
 terkait sudah tidak diperlukan.
 

@@ -57,6 +57,16 @@ class Queue extends Model
         return $this->hasOne(MedicalRecord::class);
     }
 
+    public function appointment(): HasOne
+    {
+        return $this->hasOne(Appointment::class);
+    }
+
+    public function invoice(): HasOne
+    {
+        return $this->hasOne(Invoice::class);
+    }
+
     /** @param  Builder<Queue>  $query */
     #[Scope]
     protected function open(Builder $query): void

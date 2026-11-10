@@ -49,6 +49,11 @@ class MedicalRecord extends Model
         return $this->hasOne(Prescription::class);
     }
 
+    public function invoice(): HasOne
+    {
+        return $this->hasOne(Invoice::class);
+    }
+
     /** @param  Builder<MedicalRecord>  $query */
     #[Scope]
     protected function search(Builder $query, ?string $term): void

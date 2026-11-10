@@ -21,15 +21,19 @@ class EnsureUserHasRole
         $user = $request->user();
 
         if (! $user) {
-            return redirect()->guest(route('login'));
+            $loginRoute = UserRole::loginRouteForRouteName($request->route()?->getName());
+
+            return redirect()->guest($loginRoute ? route($loginRoute) : route('login'));
         }
 
         if (! $user->isActive()) {
+            $loginRoute = $user->role?->loginRoute() ?? 'login';
+
             auth()->logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
 
-            return redirect()->route('login')->withErrors([
+            return redirect()->route($loginRoute)->withErrors([
                 'email' => 'Akun Anda sedang dinonaktifkan. Silakan hubungi administrator.',
             ]);
         }

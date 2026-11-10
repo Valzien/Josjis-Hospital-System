@@ -11,7 +11,7 @@ use Illuminate\Support\Str;
 /**
  * Menonaktifkan akun demo JOSJIS pada database yang sudah terlanjur ter-seed.
  *
- * Perintah ini tidak menghapus data, hanya menonaktifkan lima akun demo dan
+ * Perintah ini tidak menghapus data, hanya menonaktifkan enam akun demo dan
  * mengunci kembali dengan sandi acak. Girasi data tetap dapat dilakukan lewat
  * admin/pengguna.
  */
@@ -21,7 +21,7 @@ class DisableDemoAccountsCommand extends Command
                             {--list : Tampilkan daftar akun demo tanpa mengubah apa pun}
                             {--purge : Hapus permanen akun demo (hanya bila tidak ada data klinis terkait)}';
 
-    protected $description = 'Matikan akun demo (admin/resepsionis/dokter/apoteker/pasien @josjis.test)';
+    protected $description = 'Matikan akun demo (admin/resepsionis/dokter/apoteker/kasir/pasien @josjis.test)';
 
     public function handle(): int
     {

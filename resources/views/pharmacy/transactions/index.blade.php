@@ -3,31 +3,46 @@
 @section('title', 'Transaksi Obat')
 
 @section('content')
-    <x-page-header title="Riwayat Transaksi" description="Seluruh pergerakan stok obat: barang masuk, keluar, dan penyesuaian." icon="bi-arrow-left-right">
-        <x-slot:actions>
-            <form method="GET" class="d-flex gap-2 flex-wrap">
-                <input type="search" name="q" value="{{ $filters['q'] ?? '' }}" class="form-control form-control-sm"
+    <x-page-header title="Riwayat Transaksi" description="Seluruh pergerakan stok obat: barang masuk, keluar, dan penyesuaian." icon="bi-arrow-left-right" />
+
+    <x-card class="mb-3">
+        <form method="GET" class="row g-2 align-items-end">
+            <div class="col-lg-3">
+                <label class="form-label small mb-1" for="q">Cari Transaksi</label>
+                <input type="search" name="q" id="q" value="{{ $filters['q'] ?? '' }}" class="form-control form-control-sm"
                        placeholder="Nama obat atau catatan" aria-label="Cari" data-search-submit>
-                <select name="type" class="form-select form-select-sm" aria-label="Tipe">
+            </div>
+            <div class="col-lg-2">
+                <label class="form-label small mb-1" for="type">Tipe</label>
+                <select name="type" id="type" class="form-select form-select-sm" aria-label="Tipe">
                     <option value="">Semua Tipe</option>
                     @foreach ($types as $value => $label)
                         <option value="{{ $value }}" @selected(($filters['type'] ?? '') === $value)>{{ $label }}</option>
                     @endforeach
                 </select>
-                <select name="medicine_id" class="form-select form-select-sm" aria-label="Obat">
+            </div>
+            <div class="col-lg-2">
+                <label class="form-label small mb-1" for="medicine_id">Obat</label>
+                <select name="medicine_id" id="medicine_id" class="form-select form-select-sm" aria-label="Obat">
                     <option value="">Semua Obat</option>
                     @foreach ($medicines as $medicine)
                         <option value="{{ $medicine->id }}" @selected((string) ($filters['medicine_id'] ?? '') === (string) $medicine->id)>{{ $medicine->name }}</option>
                     @endforeach
                 </select>
-                <input type="date" name="from" value="{{ $filters['from'] ?? '' }}" class="form-control form-control-sm"
-                       aria-label="Dari" title="Dari tanggal">
-                <input type="date" name="to" value="{{ $filters['to'] ?? '' }}" class="form-control form-control-sm"
-                       aria-label="Sampai" title="Sampai tanggal">
-                <button class="btn btn-light border btn-sm" type="submit">Terapkan</button>
-            </form>
-        </x-slot:actions>
-    </x-page-header>
+            </div>
+            <div class="col-lg-3">
+                <label class="form-label small mb-1">Periode</label>
+                <div class="input-group input-group-sm">
+                    <input type="date" name="from" value="{{ $filters['from'] ?? '' }}" class="form-control" title="Dari tanggal" aria-label="Dari">
+                    <input type="date" name="to" value="{{ $filters['to'] ?? '' }}" class="form-control" title="Sampai tanggal" aria-label="Sampai">
+                </div>
+            </div>
+            <div class="col-lg-2 d-flex gap-2">
+                <button class="btn btn-primary btn-sm flex-grow-1" type="submit"><i class="bi bi-funnel me-1"></i>Terapkan</button>
+                <a href="{{ route('pharmacy.transactions.index') }}" class="btn btn-light border btn-sm">Reset</a>
+            </div>
+        </form>
+    </x-card>
 
     <div class="row g-3 mb-3">
         <div class="col-6 col-xl-3">
@@ -47,7 +62,7 @@
     @if (! empty($dailyChart['labels']))
         <x-card title="Grafik Transaksi Harian" icon="bi-bar-chart-line" class="mb-3">
             <div style="min-height:280px">
-                <canvas id="chartTransactions"></canvas>
+                <div id="chartTransactions"></div>
             </div>
         </x-card>
     @endif
@@ -91,6 +106,7 @@
 
 @push('scripts')
     @if (! empty($dailyChart['labels']))
+        <script src="{{ asset('vendor/apexcharts/js/apexcharts.min.js') }}"></script>
         <script>
             window.jhsChart('chartTransactions', {
                 labels: @json($dailyChart['labels']),

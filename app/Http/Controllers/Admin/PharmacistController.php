@@ -38,7 +38,11 @@ class PharmacistController extends Controller
 
     public function create(): View
     {
-        return view('admin.pharmacists.form', ['pharmacist' => new Pharmacist(['status' => ActiveStatus::Active])]);
+        return view('admin.pharmacists.form', [
+            'pharmacist' => new Pharmacist(['status' => ActiveStatus::Active]),
+            'statuses' => ActiveStatus::options(),
+            'availableUsers' => $this->availableUsers(),
+        ]);
     }
 
     public function store(StaffRequest $request): RedirectResponse
@@ -57,7 +61,11 @@ class PharmacistController extends Controller
 
     public function edit(Pharmacist $pharmacist): View
     {
-        return view('admin.pharmacists.form', ['pharmacist' => $pharmacist]);
+        return view('admin.pharmacists.form', [
+            'pharmacist' => $pharmacist,
+            'statuses' => ActiveStatus::options(),
+            'availableUsers' => $this->availableUsers($pharmacist),
+        ]);
     }
 
     public function update(StaffRequest $request, Pharmacist $pharmacist): RedirectResponse
@@ -96,5 +104,19 @@ class PharmacistController extends Controller
             ->groupBy('processed_by')
             ->pluck('total', 'processed_by')
             ->all();
+    }
+
+    private function availableUsers(?Pharmacist $pharmacist = null)
+    {
+        return User::query()
+            ->where('role', UserRole::Pharmacist->value)
+            ->where(function ($q) use ($pharmacist) {
+                $q->whereDoesntHave('pharmacist');
+                if ($pharmacist?->user_id) {
+                    $q->orWhere('id', $pharmacist->user_id);
+                }
+            })
+            ->orderBy('name')
+            ->get();
     }
 }

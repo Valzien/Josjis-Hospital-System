@@ -45,6 +45,7 @@ class QueueController extends Controller
             'date' => $date->toDateString(),
             'filters' => $request->only('doctor_id', 'status', 'q'),
             'summary' => Queue::statusSummaryForToday($request->integer('doctor_id') ?: null),
+            'staleCount' => Queue::query()->whereDate('queue_date', '<', now()->toDateString())->whereIn('status', [QueueStatus::Waiting->value, QueueStatus::Called->value])->count(),
         ]);
     }
 
@@ -85,7 +86,12 @@ class QueueController extends Controller
     public function create(): View
     {
         return view('reception.queues.create', [
-            'doctors' => Doctor::query()->active()->whereHas('schedules', fn ($q) => $q->active()->forDay(now()))->orderBy('name')->get(),
+            'doctors' => Doctor::query()
+                ->active()
+                ->whereHas('schedules', fn ($q) => $q->active()->forDay(now()))
+                ->with(['schedules' => fn ($q) => $q->active()->forDay(now())->orderBy('start_time')])
+                ->orderBy('name')
+                ->get(),
             'patients' => Patient::query()->orderBy('name')->limit(500)->get(),
         ]);
     }
@@ -120,6 +126,15 @@ class QueueController extends Controller
         return view('reception.queues.show', [
             'queue' => $queue,
             'position' => $queue->position(),
+        ]);
+    }
+
+    public function ticket(Queue $queue): View
+    {
+        $queue->load(['patient', 'doctor', 'doctorSchedule']);
+
+        return view('reception.queues.ticket', [
+            'queue' => $queue,
         ]);
     }
 
@@ -177,5 +192,25 @@ class QueueController extends Controller
         $this->audit->updated('queue', 'Queue', $queue->id, "Memulihkan antrean {$queue->queue_number} menjadi MENUNGGU.");
 
         return back()->with('success', "Antrean {$queue->queue_number} dipulihkan menjadi MENUNGGU.");
+    }
+
+    public function recall(Queue $queue): RedirectResponse
+    {
+        if ($queue->status !== QueueStatus::Called) {
+            return back()->with('error', 'Hanya antrean yang sedang dipanggil yang dapat dipanggil ulang.');
+        }
+
+        $queue->update(['called_at' => now()]);
+        $this->audit->updated('queue', 'Queue', $queue->id, "Memanggil ulang antrean {$queue->queue_number} ({$queue->patient->name}).");
+
+        return back()->with('success', "Nomor antrean {$queue->queue_number} dipanggil ulang.");
+    }
+
+    public function closeStale(): RedirectResponse
+    {
+        $count = $this->queues->closeStaleQueues();
+        $this->audit->updated('queue', 'Queue', 0, "Menutup {$count} antrean lampau yang belum terlayani.");
+
+        return back()->with('success', "Berhasil menutup {$count} antrean lampau yang belum terlayani.");
     }
 }

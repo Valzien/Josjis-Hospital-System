@@ -16,6 +16,24 @@
         </x-slot:actions>
     </x-page-header>
 
+    @if (($expiredCount ?? 0) > 0)
+        <div class="alert alert-danger d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+            <div>
+                <i class="bi bi-x-circle-fill me-1"></i>
+                Peringatan: Terdapat <strong>{{ $expiredCount }}</strong> obat yang telah melewati masa kedaluwarsa!
+            </div>
+            <a href="{{ route('pharmacy.medicines.index', ['expiry' => 'expired']) }}" class="btn btn-sm btn-danger">Tinjau Obat Kedaluwarsa</a>
+        </div>
+    @elseif (($expiringSoonCount ?? 0) > 0)
+        <div class="alert alert-warning d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+            <div>
+                <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                Perhatian: Terdapat <strong>{{ $expiringSoonCount }}</strong> obat yang mendekati tanggal kedaluwarsa (&lt; 30 hari).
+            </div>
+            <a href="{{ route('pharmacy.medicines.index', ['expiry' => 'expiring_soon']) }}" class="btn btn-sm btn-warning">Periksa Stok Obat</a>
+        </div>
+    @endif
+
     <div class="row g-3 mb-3">
         <div class="col-6 col-xl-3">
             <x-stat-card label="Resep Menunggu" :value="$pendingCount" icon="bi-hourglass-split" color="warning"
@@ -49,7 +67,7 @@
                          :meta="$todayOut.' unit keluar'" :href="route('pharmacy.transactions.index')" />
         </div>
         <div class="col-6 col-xl-3">
-            <x-stat-card label="Nilai Inventaris" :value="\Illuminate\Support\Number::currency($inventoryValue, 'IDR', 'id')"
+            <x-stat-card label="Nilai Inventaris" :value="'Rp '.number_format($inventoryValue, 0, ',', '.')"
                          icon="bi-cash-stack" color="primary" :href="route('pharmacy.stock.index')" />
         </div>
     </div>

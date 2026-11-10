@@ -5,12 +5,14 @@
 @endphp
 
 <aside class="jhs-sidebar" id="jhs-sidebar">
-    <a class="jhs-sidebar-brand" href="{{ route($user?->dashboardRoute() ?? 'landing') }}">
-        <span class="jhs-brand-mark"><i class="bi bi-hospital"></i></span>
-        <span class="jhs-brand-text d-none d-sm-block">
+    <a class="jhs-sidebar-brand text-decoration-none" href="{{ route($user?->dashboardRoute() ?? 'landing') }}">
+        <div class="jhs-sidebar-brand-icon">
+            <img src="{{ asset('images/logo-icon.png') }}" alt="{{ $jhsConfig['short_name'] }}">
+        </div>
+        <div class="jhs-brand-text d-none d-sm-block">
             <strong>{{ $jhsConfig['short_name'] }}</strong>
             <span>Hospital System</span>
-        </span>
+        </div>
     </a>
 
     <nav class="jhs-sidebar-nav">
@@ -41,14 +43,14 @@
     @if ($user)
         <div class="jhs-sidebar-footer">
             <div class="jhs-sidebar-user">
-                <span class="jhs-avatar">{{ $user->initials() }}</span>
+                <span class="jhs-avatar" style="background:#2563eb;color:#fff;border:none;">{{ $user->initials() }}</span>
                 <div class="flex-grow-1 min-w-0">
                     <div class="jhs-sidebar-user-name text-truncate">{{ $user->displayName() }}</div>
-                    <div class="jhs-sidebar-user-role">{{ $user->roleLabel() }}</div>
+                    <div class="jhs-sidebar-user-role text-truncate">{{ $user->roleLabel() }}</div>
                 </div>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <button class="jhs-action-btn" type="submit" title="Keluar" style="background:transparent;border-color:rgba(255,255,255,.15);color:#b9c6da">
+                    <button class="jhs-action-btn" type="submit" title="Keluar" style="background:transparent;border:none;color:#94a3b8">
                         <i class="bi bi-box-arrow-right"></i>
                     </button>
                 </form>

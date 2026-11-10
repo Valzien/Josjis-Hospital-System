@@ -93,7 +93,7 @@
             @if ($record->prescription)
                 <x-card title="Resep" icon="bi-file-earmark-medical" class="mt-3">
                     <x-slot:actions>
-                        <span class="badge bg-light border">{{ $record->prescription->code }}</span>
+                        <span class="badge bg-light text-dark border">{{ $record->prescription->code }}</span>
                         <a href="{{ route('doctor.prescriptions.show', $record->prescription) }}"
                            class="btn btn-sm btn-light border">Detail</a>
                     </x-slot:actions>

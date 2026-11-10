@@ -7,8 +7,8 @@
                    description="Jadwal praktik, kuota antrean, dan ruang konsultasi yang assigned untuk Anda."
                    icon="bi-calendar-week">
         <x-slot:actions>
-            <span class="badge bg-light border">
-                <i class="bi bi-calendar-day me-1"></i>{{ now()->translatedFormat('l, d F Y') }}
+            <span class="badge bg-white text-dark border px-3 py-2 fw-medium shadow-xs">
+                <i class="bi bi-calendar3 me-1 text-primary"></i>{{ now()->translatedFormat('l, d F Y') }}
             </span>
         </x-slot:actions>
     </x-page-header>

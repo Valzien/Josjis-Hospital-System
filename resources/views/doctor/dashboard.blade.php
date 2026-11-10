@@ -24,8 +24,8 @@
 
         <div class="row g-3 mb-3">
             <div class="col-6 col-xl-3">
-                <x-stat-card label="Menunggu" :value="$waitingCount" icon="bi-hourglass-split" color="warning"
-                             :href="route('doctor.queues.index', ['status' => 'waiting'])" />
+                <x-stat-card label="Siap Diperiksa" :value="$waitingCount" icon="bi-megaphone" color="info"
+                             :href="route('doctor.queues.index', ['status' => 'called'])" />
             </div>
             <div class="col-6 col-xl-3">
                 <x-stat-card label="Selesai Hari Ini" :value="$completedCount" icon="bi-check2-circle" color="success"
@@ -85,7 +85,7 @@
             </div>
 
             <div class="col-xl-8">
-                <x-card title="Antrean Menunggu" icon="bi-hourglass-split">
+                <x-card title="Antrean Siap Diperiksa" subtitle="Sudah dipanggil/di-ACC resepsionis" icon="bi-megaphone">
                     <x-slot:actions>
                         <a href="{{ route('doctor.queues.index') }}" class="btn btn-sm btn-light border">Semua Antrean</a>
                     </x-slot:actions>
@@ -111,14 +111,16 @@
                                             {{ \Illuminate\Support\Str::limit($queue->complaint_note ?? '-', 40) }}
                                         </td>
                                         <td class="text-end">
-                                            <a href="{{ route('doctor.queues.show', $queue) }}" class="btn btn-sm btn-primary">Periksa</a>
+                                            <a href="{{ route('doctor.examinations.create', $queue) }}" class="btn btn-sm btn-primary">
+                                                <i class="bi bi-stethoscope me-1"></i>Periksa
+                                            </a>
                                         </td>
                                     </tr>
                                 @empty
                                     <tr>
                                         <td colspan="4">
-                                            <x-empty-state icon="bi-hourglass" title="Tidak ada antrean menunggu"
-                                                           text="Semua pasien hari ini sudah dilayani." />
+                                            <x-empty-state icon="bi-megaphone" title="Tidak ada antrean siap diperiksa"
+                                                           text="Pasien baru akan muncul di sini setelah dipanggil dan di-ACC oleh resepsionis." />
                                         </td>
                                     </tr>
                                 @endforelse

@@ -16,6 +16,22 @@
         </x-slot:actions>
     </x-page-header>
 
+    @if (($staleCount ?? 0) > 0)
+        <div class="alert alert-warning d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+            <div>
+                <i class="bi bi-clock-history me-1"></i>
+                Terdapat <strong>{{ $staleCount }}</strong> antrean dari hari kemarin/lampau yang belum diselesaikan atau dibatalkan.
+            </div>
+            <form method="POST" action="{{ route('reception.queues.close-stale') }}">
+                @csrf
+                <button type="submit" class="btn btn-sm btn-warning" data-confirm-title="Tutup Antrean Lampau"
+                        data-confirm-message="Semua antrean sebelum hari ini yang masih berstatus menunggu/dipanggil akan ditandai dibatalkan (jam layanan berakhir). Lanjutkan?">
+                    <i class="bi bi-check-all me-1"></i>Tutup Sisa Antrean Lampau
+                </button>
+            </form>
+        </div>
+    @endif
+
     <div class="row g-3 mb-3">
         <div class="col-6 col-xl-3">
             <x-stat-card label="Total Antrean Hari Ini" :value="$totalToday" icon="bi-list-ol" color="primary"

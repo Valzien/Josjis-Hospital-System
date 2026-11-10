@@ -54,13 +54,10 @@ class ExaminationController extends Controller
     {
         abort_if($queue->doctor_id !== auth()->user()->doctor?->id, 403);
         abort_if($queue->status === QueueStatus::Completed, 404, 'Pemeriksaan ini sudah selesai.');
+        abort_if($queue->status === QueueStatus::Waiting, 403, 'Antrean belum dipanggil/diverifikasi oleh resepsionis.');
         abort_if($queue->medicalRecord !== null, 422, 'Rekam medis untuk antrean ini sudah dibuat.');
 
         $queue->load(['patient', 'doctorSchedule', 'doctor']);
-
-        if ($queue->status === QueueStatus::Waiting) {
-            $this->queues->updateStatus($queue, QueueStatus::Called);
-        }
 
         if ($queue->status === QueueStatus::Called) {
             $this->queues->updateStatus($queue, QueueStatus::InExamination);

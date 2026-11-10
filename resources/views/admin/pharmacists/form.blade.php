@@ -40,7 +40,7 @@
                         <div class="col-md-6">
                             <label class="form-label" for="status">Status <span class="text-danger">*</span></label>
                             <select name="status" id="status" class="form-select @error('status') is-invalid @enderror" required>
-                                @foreach ($statuses as $value => $label)
+                                @foreach ($statuses ?? \App\Enums\ActiveStatus::options() as $value => $label)
                                     <option value="{{ $value }}" @selected(old('status', $pharmacist->status?->value) === $value)>{{ $label }}</option>
                                 @endforeach
                             </select>
@@ -54,8 +54,10 @@
                                 @if ($pharmacist->user)
                                     <option value="{{ $pharmacist->user->id }}" selected>{{ $pharmacist->user->name }} ({{ $pharmacist->user->email }})</option>
                                 @endif
-                                @foreach ($availableUsers as $user)
-                                    <option value="{{ $user->id }}" @selected(old('user_id') == $user->id)>{{ $user->name }} ({{ $user->email }})</option>
+                                @foreach ($availableUsers ?? [] as $user)
+                                    @if ($user->id !== $pharmacist->user_id)
+                                        <option value="{{ $user->id }}" @selected(old('user_id') == $user->id)>{{ $user->name }} ({{ $user->email }})</option>
+                                    @endif
                                 @endforeach
                             </select>
                             <div class="form-text">Akun dengan role Apoteker yang belum ditautkan.</div>

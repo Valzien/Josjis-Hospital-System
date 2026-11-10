@@ -5,21 +5,33 @@
 @section('content')
     <x-page-header title="Papan Antrean" description="Pantau dan panggil antrean per dokter." icon="bi-broadcast">
         <x-slot:actions>
-            <form method="GET" class="d-flex gap-2 flex-wrap">
-                <input type="date" name="date" value="{{ $date }}" class="form-control form-control-sm" aria-label="Tanggal">
-                <select name="doctor_id" class="form-select form-select-sm" aria-label="Dokter">
-                    <option value="">Semua Dokter</option>
-                    @foreach ($doctors as $doctor)
-                        <option value="{{ $doctor->id }}" @selected((string) $selectedDoctor === (string) $doctor->id)>{{ $doctor->name }}</option>
-                    @endforeach
-                </select>
-                <button class="btn btn-light border btn-sm" type="submit">Terapkan</button>
-            </form>
             <a href="{{ route('reception.queues.create') }}" class="btn btn-primary btn-sm">
                 <i class="bi bi-plus-lg me-1"></i>Buat Antrean
             </a>
         </x-slot:actions>
     </x-page-header>
+
+    <x-card class="mb-3">
+        <form method="GET" class="row g-2 align-items-end">
+            <div class="col-md-4 col-lg-3">
+                <label class="form-label small mb-1" for="date">Tanggal</label>
+                <input type="date" name="date" id="date" value="{{ $date }}" class="form-control form-control-sm" aria-label="Tanggal">
+            </div>
+            <div class="col-md-5 col-lg-4">
+                <label class="form-label small mb-1" for="doctor_id">Dokter</label>
+                <select name="doctor_id" id="doctor_id" class="form-select form-select-sm" aria-label="Dokter">
+                    <option value="">Semua Dokter</option>
+                    @foreach ($doctors as $doctor)
+                        <option value="{{ $doctor->id }}" @selected((string) $selectedDoctor === (string) $doctor->id)>{{ $doctor->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-3 col-lg-2 d-flex gap-2">
+                <button class="btn btn-primary btn-sm flex-grow-1" type="submit"><i class="bi bi-funnel me-1"></i>Terapkan</button>
+                <a href="{{ route('reception.queues.board') }}" class="btn btn-light border btn-sm">Reset</a>
+            </div>
+        </form>
+    </x-card>
 
     <div class="row g-3 mb-3">
         <div class="col-6 col-xl-3">

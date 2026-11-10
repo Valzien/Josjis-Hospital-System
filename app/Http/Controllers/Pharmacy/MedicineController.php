@@ -25,6 +25,8 @@ class MedicineController extends Controller
             ->when($request->filled('category'), fn ($q) => $q->where('category', $request->string('category')->value))
             ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')->value))
             ->when($request->boolean('low_stock'), fn ($q) => $q->lowStock())
+            ->when($request->string('expiry')->value === 'expired', fn ($q) => $q->whereNotNull('expiry_date')->whereDate('expiry_date', '<', now()->toDateString()))
+            ->when($request->string('expiry')->value === 'expiring_soon', fn ($q) => $q->whereNotNull('expiry_date')->whereDate('expiry_date', '>=', now()->toDateString())->whereDate('expiry_date', '<=', now()->addDays(30)->toDateString()))
             ->orderBy('name')
             ->paginate(15)
             ->withQueryString();
@@ -33,8 +35,10 @@ class MedicineController extends Controller
             'medicines' => $medicines,
             'categories' => Medicine::categoryOptions(),
             'statuses' => ActiveStatus::options(),
-            'filters' => $request->only('q', 'category', 'status', 'low_stock'),
+            'filters' => $request->only('q', 'category', 'status', 'low_stock', 'expiry'),
             'lowStockCount' => Medicine::query()->active()->lowStock()->count(),
+            'expiredCount' => Medicine::query()->active()->whereNotNull('expiry_date')->whereDate('expiry_date', '<', now()->toDateString())->count(),
+            'expiringSoonCount' => Medicine::query()->active()->whereNotNull('expiry_date')->whereDate('expiry_date', '>=', now()->toDateString())->whereDate('expiry_date', '<=', now()->addDays(30)->toDateString())->count(),
         ]);
     }
 

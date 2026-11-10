@@ -23,8 +23,30 @@
     </x-page-header>
 
     <x-card class="mb-3">
-        <form method="GET" action="{{ route('admin.reports.show', $report) }}" class="row g-2 align-items-end">
+        <form method="GET" action="{{ route('admin.reports.show', $report) }}">
             <input type="hidden" name="report" value="{{ $report }}">
+
+            <div class="d-flex flex-wrap align-items-center gap-1 mb-3 pb-2 border-bottom">
+                <span class="fs-8 text-muted-2 fw-semibold me-1"><i class="bi bi-lightning-charge me-1"></i>Rentang Cepat:</span>
+                <button type="button" class="btn btn-light border py-1 px-2 fs-8"
+                        onclick="document.getElementById('from').value='{{ now()->toDateString() }}'; document.getElementById('to').value='{{ now()->toDateString() }}'; this.form.submit();">
+                    Hari Ini
+                </button>
+                <button type="button" class="btn btn-light border py-1 px-2 fs-8"
+                        onclick="document.getElementById('from').value='{{ now()->subDays(6)->toDateString() }}'; document.getElementById('to').value='{{ now()->toDateString() }}'; this.form.submit();">
+                    7 Hari Terakhir
+                </button>
+                <button type="button" class="btn btn-light border py-1 px-2 fs-8"
+                        onclick="document.getElementById('from').value='{{ now()->startOfMonth()->toDateString() }}'; document.getElementById('to').value='{{ now()->toDateString() }}'; this.form.submit();">
+                    Bulan Ini
+                </button>
+                <button type="button" class="btn btn-light border py-1 px-2 fs-8"
+                        onclick="document.getElementById('from').value='{{ now()->subMonth()->startOfMonth()->toDateString() }}'; document.getElementById('to').value='{{ now()->subMonth()->endOfMonth()->toDateString() }}'; this.form.submit();">
+                    Bulan Lalu
+                </button>
+            </div>
+
+            <div class="row g-2 align-items-end">
             <div class="col-lg-2">
                 <label class="form-label small mb-1" for="from">Dari</label>
                 <input type="date" name="from" id="from" value="{{ $filters['from'] }}" class="form-control form-control-sm">

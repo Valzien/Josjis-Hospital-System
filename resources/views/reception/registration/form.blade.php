@@ -54,7 +54,7 @@
 
         <div class="row g-3">
             <div class="col-xl-8">
-                <x-card title="Identitas Pasien" subtitle="Wajib diisi: nama lengkap" icon="bi-person">
+                <x-card title="1. Identitas Pribadi Pasien" subtitle="Data identitas resmi pasien sesuai KTP/Kartu Identitas" icon="bi-person-vcard">
                     <div class="row g-3">
                         <div class="col-md-8">
                             <label class="form-label" for="name">Nama Lengkap <span class="text-danger">*</span></label>
@@ -108,7 +108,7 @@
                     </div>
                 </x-card>
 
-                <x-card title="Kontak & Alamat" icon="bi-telephone">
+                <x-card title="2. Kontak & Alamat Domisili" subtitle="Nomor kontak aktif dan alamat domisili pasien" icon="bi-geo-alt" class="mt-3">
                     <div class="row g-3">
                         <div class="col-md-4">
                             <label class="form-label" for="phone">Nomor Telepon</label>
@@ -129,7 +129,7 @@
             </div>
 
             <div class="col-xl-4">
-                <x-card title="Kontak Darurat" subtitle="Opsional, digunakan saat keadaan darurat" icon="bi-telephone-inbound">
+                <x-card title="3. Kontak Darurat / Wali" subtitle="Opsional, pihak yang dapat dihubungi saat keadaan darurat" icon="bi-telephone-inbound">
                     <div class="row g-3">
                         <div class="col-12">
                             <label class="form-label" for="emergency_contact_name">Nama Kontak Darurat</label>

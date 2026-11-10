@@ -66,31 +66,17 @@
 
             <div class="col-xl-5">
                 <x-card title="Pilih Jadwal Dokter" icon="bi-calendar-week">
-                    @php
-                        $scheduleGroups = $doctors->mapWithKeys(fn ($doctor) => [
-                            $doctor->id => [
-                                'doctor' => $doctor,
-                                'schedules' => \App\Models\DoctorSchedule::query()
-                                    ->where('doctor_id', $doctor->id)
-                                    ->active()
-                                    ->forDay(now())
-                                    ->orderBy('start_time')
-                                    ->get(),
-                            ],
-                        ])->filter(fn ($row) => $row['schedules']->isNotEmpty());
-                    @endphp
-
-                    <label class="form-label" for="doctor_schedule_id">Jadwal <span class="text-danger">*</span></label>
+                    <label class="form-label" for="doctor_schedule_id">Jadwal Praktik Dokter <span class="text-danger">*</span></label>
                     <select name="doctor_schedule_id" id="doctor_schedule_id" required
                             class="form-select @error('doctor_schedule_id') is-invalid @enderror">
-                        <option value="">Pilih jadwal</option>
-                        @forelse ($scheduleGroups as $row)
-                            @foreach ($row['schedules'] as $schedule)
+                        <option value="">Pilih jadwal dokter</option>
+                        @forelse ($doctors as $doctor)
+                            @foreach ($doctor->schedules as $schedule)
                                 <option value="{{ $schedule->id }}"
                                         @selected((string) old('doctor_schedule_id') === (string) $schedule->id)
                                         @disabled(! $schedule->isOpen())>
-                                    {{ $row['doctor']->name }} &mdash; {{ $schedule->timeRange() }}
-                                    ({{ $schedule->isOpen() ? 'sisa '.$schedule->remainingQuota() : 'sudah ditutup' }})
+                                    {{ $doctor->name }} &mdash; {{ $schedule->timeRange() }} (Ruang {{ $schedule->room }})
+                                    [{{ $schedule->isOpen() ? 'Sisa '.$schedule->remainingQuota().' kuota' : 'Penuh/Tutup' }}]
                                 </option>
                             @endforeach
                         @empty
@@ -107,7 +93,7 @@
                 </x-card>
 
                 <div class="d-grid gap-2 mt-3">
-                    <button type="submit" class="btn btn-primary" @disabled($scheduleGroups->isEmpty())>
+                    <button type="submit" class="btn btn-primary" @disabled($doctors->isEmpty())>
                         <i class="bi bi-check-lg me-1"></i>Buat Antrean
                     </button>
                     <a href="{{ route('reception.queues.index') }}" class="btn btn-light border">Batal</a>

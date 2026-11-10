@@ -68,4 +68,26 @@ class PatientPagesTest extends SmokeTestCase
 
         $this->assertDatabaseCount('queues', 0);
     }
+
+    public function test_patient_can_cancel_their_own_open_queue(): void
+    {
+        $patient = $this->actingPatient();
+        $data = $this->seedScenarioForPatient($patient);
+        $queue = $data['queue'];
+
+        $this->post(route('patient.queue.cancel', $queue))
+            ->assertRedirect(route('patient.queue.index'))
+            ->assertSessionHas('success');
+
+        $this->assertEquals(\App\Enums\QueueStatus::Cancelled, $queue->fresh()->status);
+    }
+
+    public function test_patient_cannot_cancel_another_patients_queue(): void
+    {
+        $this->actingPatient();
+        $data = $this->seedScenario();
+
+        $this->post(route('patient.queue.cancel', $data['queue']))
+            ->assertForbidden();
+    }
 }

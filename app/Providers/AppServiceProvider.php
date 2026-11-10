@@ -23,6 +23,8 @@ class AppServiceProvider extends ServiceProvider
         //
     }
 
+    private static ?array $cachedBadges = null;
+
     public function boot(): void
     {
         if ($this->app->environment('production')) {
@@ -36,12 +38,12 @@ class AppServiceProvider extends ServiceProvider
 
     private function shareViewData(): void
     {
-        View::composer('*', function ($view) {
-            $view->with('jhsConfig', config('jhs'));
+        View::share('jhsConfig', config('jhs'));
+        View::share('hospitalName', config('jhs.name'));
+
+        View::composer(['partials.sidebar', 'partials.topbar', 'layouts.app'], function ($view) {
             $view->with('navBadges', $this->navigationBadges());
         });
-
-        View::share('hospitalName', config('jhs.name'));
     }
 
     /**
@@ -51,20 +53,26 @@ class AppServiceProvider extends ServiceProvider
      */
     private function navigationBadges(): array
     {
+        if (static::$cachedBadges !== null) {
+            return static::$cachedBadges;
+        }
+
         $user = auth()->user();
 
         if ($user === null) {
-            return [];
+            return static::$cachedBadges = [];
         }
 
-        return Cache::remember('jhs.nav-badges.'.$user->id, 60, function () use ($user) {
+        return static::$cachedBadges = Cache::remember('jhs.nav-badges.'.$user->id, 60, function () use ($user) {
             $today = now()->toDateString();
 
-            $waiting = $user->isDoctor() || $user->isReceptionist()
-                ? Queue::query()->onDate($today)->where('status', QueueStatus::Waiting->value)
-                    ->when($user->isDoctor(), fn ($q) => $q->where('doctor_id', $user->doctor?->id))
+            $waiting = $user->isDoctor()
+                ? Queue::query()->onDate($today)->where('status', QueueStatus::Called->value)
+                    ->where('doctor_id', $user->doctor?->id)
                     ->count()
-                : 0;
+                : ($user->isReceptionist()
+                    ? Queue::query()->onDate($today)->where('status', QueueStatus::Waiting->value)->count()
+                    : 0);
 
             return [
                 'waiting' => (int) $waiting,

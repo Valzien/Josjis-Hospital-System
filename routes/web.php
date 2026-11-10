@@ -109,10 +109,13 @@ Route::middleware(['auth', 'role:receptionist,admin'])
         Route::get('queues/create', [Reception\QueueController::class, 'create'])->name('queues.create');
         Route::post('queues', [Reception\QueueController::class, 'store'])->name('queues.store');
         Route::get('queues/{queue}', [Reception\QueueController::class, 'show'])->name('queues.show');
-        Route::post('queues/{queue}/call', [Reception\QueueController::class, 'call'])->name('queues.call');
-        Route::post('queues/call-next', [Reception\QueueController::class, 'callNext'])->name('queues.call-next');
-        Route::post('queues/{queue}/cancel', [Reception\QueueController::class, 'cancel'])->name('queues.cancel');
-        Route::post('queues/{queue}/restore', [Reception\QueueController::class, 'restore'])->name('queues.restore');
+        Route::get('queues/{queue}/ticket', [Reception\QueueController::class, 'ticket'])->name('queues.ticket');
+        Route::match(['post', 'patch'], 'queues/{queue}/call', [Reception\QueueController::class, 'call'])->name('queues.call');
+        Route::match(['post', 'patch'], 'queues/{queue}/recall', [Reception\QueueController::class, 'recall'])->name('queues.recall');
+        Route::match(['post', 'patch'], 'queues/call-next', [Reception\QueueController::class, 'callNext'])->name('queues.call-next');
+        Route::match(['post', 'patch'], 'queues/{queue}/cancel', [Reception\QueueController::class, 'cancel'])->name('queues.cancel');
+        Route::match(['post', 'patch'], 'queues/{queue}/restore', [Reception\QueueController::class, 'restore'])->name('queues.restore');
+        Route::post('queues/close-stale', [Reception\QueueController::class, 'closeStale'])->name('queues.close-stale');
 
         Route::get('schedules', [Reception\ScheduleController::class, 'index'])->name('schedules.index');
     });
@@ -130,8 +133,8 @@ Route::middleware(['auth', 'role:doctor,admin'])
 
         Route::get('queues', [Doctor\QueueController::class, 'index'])->name('queues.index');
         Route::get('queues/{queue}', [Doctor\QueueController::class, 'show'])->name('queues.show');
-        Route::post('queues/{queue}/start', [Doctor\QueueController::class, 'start'])->name('queues.start');
-        Route::post('queues/{queue}/complete', [Doctor\QueueController::class, 'complete'])->name('queues.complete');
+        Route::match(['post', 'patch'], 'queues/{queue}/start', [Doctor\QueueController::class, 'start'])->name('queues.start');
+        Route::match(['post', 'patch'], 'queues/{queue}/complete', [Doctor\QueueController::class, 'complete'])->name('queues.complete');
 
         Route::get('patients', [Doctor\PatientController::class, 'index'])->name('patients.index');
         Route::get('patients/{patient}', [Doctor\PatientController::class, 'show'])->name('patients.show');
@@ -165,10 +168,10 @@ Route::middleware(['auth', 'role:pharmacist,admin'])
 
         Route::get('prescriptions', [Pharmacy\PrescriptionController::class, 'index'])->name('prescriptions.index');
         Route::get('prescriptions/{prescription}', [Pharmacy\PrescriptionController::class, 'show'])->name('prescriptions.show');
-        Route::post('prescriptions/{prescription}/process', [Pharmacy\PrescriptionController::class, 'process'])->name('prescriptions.process');
-        Route::post('prescriptions/{prescription}/ready', [Pharmacy\PrescriptionController::class, 'ready'])->name('prescriptions.ready');
-        Route::post('prescriptions/{prescription}/complete', [Pharmacy\PrescriptionController::class, 'complete'])->name('prescriptions.complete');
-        Route::post('prescriptions/{prescription}/cancel', [Pharmacy\PrescriptionController::class, 'cancel'])->name('prescriptions.cancel');
+        Route::match(['post', 'patch'], 'prescriptions/{prescription}/process', [Pharmacy\PrescriptionController::class, 'process'])->name('prescriptions.process');
+        Route::match(['post', 'patch'], 'prescriptions/{prescription}/ready', [Pharmacy\PrescriptionController::class, 'ready'])->name('prescriptions.ready');
+        Route::match(['post', 'patch'], 'prescriptions/{prescription}/complete', [Pharmacy\PrescriptionController::class, 'complete'])->name('prescriptions.complete');
+        Route::match(['post', 'patch'], 'prescriptions/{prescription}/cancel', [Pharmacy\PrescriptionController::class, 'cancel'])->name('prescriptions.cancel');
         Route::get('prescriptions/{prescription}/print', [Pharmacy\PrescriptionController::class, 'print'])->name('prescriptions.print');
 
         Route::resource('medicines', Pharmacy\MedicineController::class);
@@ -205,7 +208,8 @@ Route::middleware(['auth', 'role:patient'])
         Route::get('queue/create', [Patient\QueueController::class, 'create'])->name('queue.create');
         Route::post('queue', [Patient\QueueController::class, 'store'])->name('queue.store');
         Route::get('queue/{queue}', [Patient\QueueController::class, 'show'])->name('queue.show');
-        Route::post('queue/{queue}/cancel', [Patient\QueueController::class, 'cancel'])->name('queue.cancel');
+        Route::get('queue/{queue}/ticket', [Patient\QueueController::class, 'ticket'])->name('queue.ticket');
+        Route::match(['post', 'patch'], 'queue/{queue}/cancel', [Patient\QueueController::class, 'cancel'])->name('queue.cancel');
 
         Route::get('history', [Patient\HistoryController::class, 'index'])->name('history.index');
         Route::get('history/{record}', [Patient\HistoryController::class, 'show'])->name('history.show');

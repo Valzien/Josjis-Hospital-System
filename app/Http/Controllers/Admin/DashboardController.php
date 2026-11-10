@@ -50,20 +50,10 @@ class DashboardController extends Controller
             ->groupBy('status')
             ->pluck('total', 'status');
 
-        $serviceDistribution = MedicalRecord::query()
-            ->whereDate('examined_at', '>=', now()->subDays(29)->toDateString())
-            ->join('doctors', 'doctors.id', '=', 'medical_records.doctor_id')
-            ->select('doctors.specialization', DB::raw('count(*) as total'))
-            ->groupBy('doctors.specialization')
-            ->orderByDesc('total')
-            ->limit(6)
-            ->get();
-
         return view('admin.dashboard', [
             'counts' => $counts,
             'monthlyPatients' => $this->fillMonths($monthlyPatients),
             'queueStatus' => $queueStatus,
-            'serviceDistribution' => $serviceDistribution,
             'todayQueues' => Queue::query()->with(['patient', 'doctor'])->onDate($today)->orderBy('queue_number')->limit(8)->get(),
             'recentActivities' => AuditLog::query()->with('user')->latest()->limit(10)->get(),
             'topDoctors' => Doctor::query()

@@ -5,15 +5,23 @@
 @section('content')
     <x-page-header title="Pasien Saya"
                    description="Pasien yang pernah Anda periksa. Daftar hanya menampilkan pasien dengan rekam medis atas nama Anda."
-                   icon="bi-person-vcard">
-        <x-slot:actions>
-            <form method="GET" class="d-flex gap-2">
-                <input type="search" name="q" value="{{ $filters['q'] ?? '' }}" class="form-control form-control-sm"
+                   icon="bi-person-vcard" />
+
+    <x-card class="mb-3">
+        <form method="GET" class="row g-2 align-items-end">
+            <div class="col-md-6 col-lg-5">
+                <label class="form-label small mb-1" for="q">Cari Pasien</label>
+                <input type="search" name="q" id="q" value="{{ $filters['q'] ?? '' }}" class="form-control form-control-sm"
                        placeholder="Nama, NIK, atau No. RM" aria-label="Cari" data-search-submit>
-                <button class="btn btn-light border btn-sm" type="submit"><i class="bi bi-search me-1"></i>Cari</button>
-            </form>
-        </x-slot:actions>
-    </x-page-header>
+            </div>
+            <div class="col-md-4 col-lg-3 d-flex gap-2">
+                <button class="btn btn-primary btn-sm flex-grow-1" type="submit"><i class="bi bi-search me-1"></i>Cari</button>
+                @if ($filters['q'] ?? null)
+                    <a href="{{ route('doctor.patients.index') }}" class="btn btn-light border btn-sm">Reset</a>
+                @endif
+            </div>
+        </form>
+    </x-card>
 
     <x-data-table :rows="$patients" :columns="[
         ['label' => 'Pasien', 'key' => 'name'],

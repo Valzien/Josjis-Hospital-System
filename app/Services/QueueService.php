@@ -168,17 +168,43 @@ class QueueService
     }
 
     /**
+     * Menutup seluruh antrean lampau yang masih aktif (WAITING atau CALLED) menjadi CANCELLED.
+     */
+    public function closeStaleQueues(): int
+    {
+        $staleQueues = Queue::query()
+            ->whereDate('queue_date', '<', now()->toDateString())
+            ->whereIn('status', [QueueStatus::Waiting->value, QueueStatus::Called->value])
+            ->get();
+
+        $count = 0;
+        foreach ($staleQueues as $queue) {
+            $queue->update([
+                'status' => QueueStatus::Cancelled,
+                'completed_at' => now(),
+            ]);
+            $count++;
+        }
+
+        return $count;
+    }
+
+    /**
      * Sisa antreanAhead = jumlah antrean aktif dengan nomor lebih kecil.
      *
      * @return array<int, Queue>
      */
-    public function upcoming(int $doctorId, ?string $date = null, int $limit = 5): array
+    public function upcoming(int $doctorId, ?string $date = null, int $limit = 5, QueueStatus|array|null $status = null): array
     {
+        $statusValues = $status === null
+            ? [QueueStatus::Waiting->value, QueueStatus::Called->value]
+            : (is_array($status) ? array_map(fn ($s) => $s instanceof QueueStatus ? $s->value : $s, $status) : [$status->value]);
+
         return Queue::query()
             ->with('patient')
             ->where('doctor_id', $doctorId)
             ->whereDate('queue_date', $date ?? now()->toDateString())
-            ->whereIn('status', [QueueStatus::Waiting->value, QueueStatus::Called->value])
+            ->whereIn('status', $statusValues)
             ->orderBy('queue_number')
             ->limit($limit)
             ->get()

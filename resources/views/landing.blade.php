@@ -7,7 +7,7 @@
     <title>{{ config('jhs.name') }} &middot; {{ config('jhs.tagline') }}</title>
     <meta name="description" content="{{ config('jhs.description') }}">
 
-    <link rel="icon" href="{{ asset('images/favicon.svg') }}" type="image/svg+xml">
+    <link rel="icon" href="{{ asset('images/favicon.png') }}" type="image/png">
     <link rel="stylesheet" href="{{ asset('vendor/bootstrap/css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/bootstrap-icons/bootstrap-icons.min.css') }}">
     <link rel="stylesheet" href="{{ asset('css/jhs.css') }}">
@@ -17,7 +17,8 @@
 <nav class="navbar navbar-expand-lg jhs-navbar sticky-top">
     <div class="container">
         <a class="navbar-brand d-flex align-items-center gap-2 fw-bold" href="{{ route('landing') }}">
-            <span class="jhs-logo-mark">+</span>{{ config('jhs.name') }}
+            <img src="{{ asset('images/logo-icon.png') }}" alt="{{ config('jhs.name') }}" height="36" class="d-inline-block">
+            <span>{{ config('jhs.name') }}</span>
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#jhsNav"
                 aria-controls="jhsNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -42,53 +43,42 @@
 
 @include('partials.flash')
 
-<header class="jhs-hero">
-    <div class="container">
-        <div class="row align-items-center g-5">
-            <div class="col-lg-7">
+<header class="jhs-hero text-center py-5">
+    <div class="container py-lg-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-9 col-xl-8">
                 <span class="badge rounded-pill jhs-hero-badge mb-3">
-                    <i class="bi bi-shield-check me-1"></i> Terakreditasi Kemenkes &middot; Standar Keselamatan Pasien
+                    <i class="bi bi-shield-check me-1 text-primary"></i> Terakreditasi Kemenkes &middot; Standar Keselamatan Pasien
                 </span>
-                <h1 class="display-4 fw-bold mb-3">{{ config('jhs.hero.title') }}</h1>
-                <p class="lead text-secondary mb-4">{{ config('jhs.hero.subtitle') }}</p>
-                <div class="d-flex flex-wrap gap-2">
-                    <a href="{{ route('register') }}" class="btn btn-primary btn-lg px-4">
-                        <i class="bi bi-calendar-plus me-2"></i>Buat Akun & Ambil Antrean
+                <h1 class="display-4 fw-bold mb-3" style="line-height:1.25">
+                    Pelayanan Rumah Sakit<br>
+                    <span style="background:linear-gradient(90deg,var(--jhs-primary),var(--jhs-teal));-webkit-background-clip:text;-webkit-text-fill-color:transparent">Cepat, Akurat &amp; Terpadu</span>
+                </h1>
+                <p class="lead text-secondary mb-4 mx-auto" style="font-size:1.15rem; max-width:640px">
+                    {{ config('jhs.description') }}
+                </p>
+                <div class="d-flex flex-wrap justify-content-center gap-3 mb-4">
+                    <a href="{{ route('register') }}" class="btn btn-primary btn-lg px-4 shadow-sm">
+                        <i class="bi bi-calendar-plus me-2"></i>Buat Akun &amp; Ambil Antrean
                     </a>
                     <a href="{{ route('login') }}" class="btn btn-outline-secondary btn-lg px-4">
                         <i class="bi bi-box-arrow-in-right me-2"></i>Masuk Petugas
                     </a>
                 </div>
 
-                <div class="row g-3 mt-4 jhs-hero-stats">
-                    @foreach ($stats as $stat)
-                        <div class="col-4">
-                            <div class="fs-3 fw-bold text-primary">{{ $stat['value'] }}</div>
-                            <div class="small text-secondary">{{ $stat['label'] }}</div>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-
-            <div class="col-lg-5">
-                <div class="jhs-hero-card">
-                    <h2 class="h6 fw-bold mb-3"><i class="bi bi-clock-history me-2 text-primary"></i>Layanan Hari Ini</h2>
-                    <ul class="list-unstyled mb-0">
-                        @forelse ($todaySchedules as $schedule)
-                            <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                                <div>
-                                    <div class="fw-semibold">{{ $schedule->doctor->name }}</div>
-                                    <div class="small text-secondary">{{ $schedule->doctor->specialization }}</div>
-                                </div>
-                                <div class="text-end">
-                                    <div class="small fw-semibold">{{ $schedule->timeRange() }}</div>
-                                    <div class="small text-secondary">{{ $schedule->room ?? '-' }}</div>
-                                </div>
-                            </li>
-                        @empty
-                            <li class="text-secondary small py-3 mb-0">Belum ada jadwal praktik hari ini.</li>
-                        @endforelse
-                    </ul>
+                <div class="d-flex flex-wrap justify-content-center align-items-center gap-4 text-secondary small pt-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-check-circle-fill text-success"></i>
+                        <span>Antrean Online Real-Time</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-check-circle-fill text-success"></i>
+                        <span>Rekam Medis Terintegrasi</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-check-circle-fill text-success"></i>
+                        <span>Farmasi &amp; Resep Digital</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -98,8 +88,9 @@
 <section id="layanan" class="py-5 bg-white">
     <div class="container">
         <div class="text-center mb-5">
-            <h2 class="fw-bold">Layanan Unggulan</h2>
-            <p class="text-secondary">Satu sistem untuk seluruh alur pelayanan pasien</p>
+            <span class="jhs-soft-badge mb-2 d-inline-block"><i class="bi bi-stars me-1"></i>Layanan</span>
+            <h2 class="fw-bold mt-2">Layanan Unggulan</h2>
+            <p class="text-secondary mx-auto" style="max-width:520px">Satu sistem terpadu untuk seluruh alur pelayanan pasien, dari registrasi hingga penyerahan obat</p>
         </div>
 
         <div class="row g-4">
@@ -116,12 +107,13 @@
     </div>
 </section>
 
-<section id="dokter" class="py-5">
+<section id="dokter" class="py-5" style="background:#f8fafc">
     <div class="container">
         <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-4">
             <div>
-                <h2 class="fw-bold mb-1">Dokter kami</h2>
-                <p class="text-secondary mb-0">Pilih dokter sesuai kebutuhan Anda</p>
+                <span class="jhs-soft-badge mb-2 d-inline-block"><i class="bi bi-heart-pulse me-1"></i>Tim Medis</span>
+                <h2 class="fw-bold mb-1 mt-2">Dokter Kami</h2>
+                <p class="text-secondary mb-0">Pilih dokter spesialis sesuai kebutuhan Anda</p>
             </div>
             @auth
                 <a href="{{ route('patient.doctors.index') }}" class="btn btn-sm btn-outline-primary">
@@ -138,18 +130,20 @@
                             <x-avatar :name="$doctor->name" size="lg" />
                             <div>
                                 <h3 class="h6 fw-bold mb-1">{{ $doctor->name }}</h3>
-                                <span class="badge jhs-soft-badge">{{ $doctor->specialization }}</span>
+                                <span class="jhs-soft-badge">{{ $doctor->specialization }}</span>
                             </div>
                         </div>
 
-                        <div class="small text-secondary mt-3">
-                            <i class="bi bi-person-badge me-1"></i>{{ $doctor->doctor_code }}
-                        </div>
-                        @if ($doctor->isOnDuty())
-                            <div class="small text-success mt-1">
-                                <i class="bi bi-circle-fill me-1" style="font-size:.5rem"></i> Sedang melayani pasien
+                        <div class="d-flex align-items-center justify-content-between mt-3">
+                            <div class="small text-secondary">
+                                <i class="bi bi-person-badge me-1"></i>{{ $doctor->doctor_code }}
                             </div>
-                        @endif
+                            @if ($doctor->isOnDuty())
+                                <span class="d-inline-flex align-items-center gap-1 small text-success fw-semibold">
+                                    <i class="bi bi-circle-fill" style="font-size:.45rem"></i> Sedang bertugas
+                                </span>
+                            @endif
+                        </div>
                     </div>
                 </div>
             @empty
@@ -164,14 +158,19 @@
 <section id="fasilitas" class="py-5 bg-white">
     <div class="container">
         <div class="text-center mb-5">
-            <h2 class="fw-bold">Fasilitas</h2>
-            <p class="text-secondary">Sarana penunjang untuk pasien dan petugas</p>
+            <span class="jhs-soft-badge mb-2 d-inline-block"><i class="bi bi-building me-1"></i>Sarana</span>
+            <h2 class="fw-bold mt-2">Fasilitas</h2>
+            <p class="text-secondary">Sarana penunjang lengkap untuk pasien dan petugas</p>
         </div>
         <div class="row g-4">
             @foreach (config('jhs.landing.facilities') as $facility)
                 <div class="col-6 col-md-4 col-lg-3">
-                    <div class="text-center p-3">
-                        <i class="bi {{ $facility['icon'] }} fs-2 text-primary"></i>
+                    <div class="text-center p-3 rounded-3" style="border:1px solid var(--jhs-border);transition:all .18s ease;cursor:default"
+                         onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 24px rgba(16,27,45,.08)'"
+                         onmouseout="this.style.transform='none';this.style.boxShadow='none'">
+                        <div class="jhs-feature-icon mx-auto" style="background:var(--jhs-primary-light);color:var(--jhs-primary-dark)">
+                            <i class="bi {{ $facility['icon'] }}"></i>
+                        </div>
                         <p class="small fw-semibold mt-2 mb-0">{{ $facility['name'] }}</p>
                     </div>
                 </div>
@@ -180,21 +179,27 @@
     </div>
 </section>
 
-<section id="alur" class="py-5">
+<section id="alur" class="py-5" style="background:#f8fafc">
     <div class="container">
         <div class="text-center mb-5">
-            <h2 class="fw-bold">Alur Pelayanan</h2>
+            <span class="jhs-soft-badge mb-2 d-inline-block"><i class="bi bi-signpost-split me-1"></i>Alur</span>
+            <h2 class="fw-bold mt-2">Alur Pelayanan</h2>
             <p class="text-secondary">Empat langkah sederhana, tanpa antre panjang</p>
         </div>
         <div class="row g-4">
             @foreach (config('jhs.landing.steps') as $index => $step)
                 <div class="col-md-6 col-lg-3">
                     <div class="jhs-step h-100 text-center">
-                        <span class="jhs-step-number">{{ $index + 1 }}</span>
+                        <div class="d-inline-flex align-items-center justify-content-center mx-auto">
+                            <span class="jhs-step-number">{{ $index + 1 }}</span>
+                        </div>
                         <h3 class="h6 fw-bold mt-3">{{ $step['title'] }}</h3>
                         <p class="small text-secondary mb-0">{{ $step['text'] }}</p>
                     </div>
                 </div>
+                @if (!$loop->last)
+                    {{-- Connector arrow (visible on lg+) --}}
+                @endif
             @endforeach
         </div>
     </div>
@@ -202,41 +207,69 @@
 
 <section id="kontak" class="py-5 bg-white">
     <div class="container">
-        <div class="row g-4">
+        <div class="row g-4 align-items-start">
             <div class="col-lg-6">
-                <h2 class="fw-bold mb-3">Hubungi Kami</h2>
+                <span class="jhs-soft-badge mb-2 d-inline-block"><i class="bi bi-telephone me-1"></i>Kontak</span>
+                <h2 class="fw-bold mb-3 mt-2">Hubungi Kami</h2>
                 <p class="text-secondary">{{ config('jhs.description') }}</p>
 
-                <ul class="list-unstyled jhs-contact-list">
+                <ul class="list-unstyled jhs-contact-list mt-4">
                     <li class="d-flex gap-3 mb-3">
-                        <i class="bi bi-geo-alt text-primary"></i>
-                        <span>{{ config('jhs.contact.address') }}</span>
+                        <div class="jhs-feature-icon" style="width:40px;height:40px;border-radius:11px;font-size:1rem;margin-bottom:0;background:var(--jhs-primary-light);color:var(--jhs-primary-dark);flex-shrink:0">
+                            <i class="bi bi-geo-alt"></i>
+                        </div>
+                        <div>
+                            <div class="small text-secondary">Alamat</div>
+                            <div class="fw-semibold" style="font-size:.88rem">{{ config('jhs.contact.address') }}</div>
+                        </div>
                     </li>
                     <li class="d-flex gap-3 mb-3">
-                        <i class="bi bi-telephone text-primary"></i>
-                        <span>{{ config('jhs.contact.phone') }}</span>
+                        <div class="jhs-feature-icon" style="width:40px;height:40px;border-radius:11px;font-size:1rem;margin-bottom:0;background:var(--jhs-primary-light);color:var(--jhs-primary-dark);flex-shrink:0">
+                            <i class="bi bi-telephone"></i>
+                        </div>
+                        <div>
+                            <div class="small text-secondary">Telepon</div>
+                            <div class="fw-semibold" style="font-size:.88rem">{{ config('jhs.contact.phone') }}</div>
+                        </div>
                     </li>
                     <li class="d-flex gap-3 mb-3">
-                        <i class="bi bi-envelope text-primary"></i>
-                        <span>{{ config('jhs.contact.email') }}</span>
+                        <div class="jhs-feature-icon" style="width:40px;height:40px;border-radius:11px;font-size:1rem;margin-bottom:0;background:var(--jhs-primary-light);color:var(--jhs-primary-dark);flex-shrink:0">
+                            <i class="bi bi-envelope"></i>
+                        </div>
+                        <div>
+                            <div class="small text-secondary">Email</div>
+                            <div class="fw-semibold" style="font-size:.88rem">{{ config('jhs.contact.email') }}</div>
+                        </div>
                     </li>
                     <li class="d-flex gap-3">
-                        <i class="bi bi-clock text-primary"></i>
-                        <span>{{ config('jhs.contact.hours') }}</span>
+                        <div class="jhs-feature-icon" style="width:40px;height:40px;border-radius:11px;font-size:1rem;margin-bottom:0;background:var(--jhs-primary-light);color:var(--jhs-primary-dark);flex-shrink:0">
+                            <i class="bi bi-clock"></i>
+                        </div>
+                        <div>
+                            <div class="small text-secondary">Jam Operasional</div>
+                            <div class="fw-semibold" style="font-size:.88rem">{{ config('jhs.contact.hours') }}</div>
+                        </div>
                     </li>
                 </ul>
             </div>
 
             <div class="col-lg-6">
-                <div class="jhs-hero-card">
-                    <h2 class="h6 fw-bold mb-3"><i class="bi bi-info-circle me-2 text-primary"></i>Layanan Darurat 24 Jam</h2>
-                    <p class="small text-secondary">
+                <div class="jhs-hero-card" style="background:linear-gradient(135deg,#f0f7ff 0%,#e8faf8 100%);border-color:var(--jhs-border)">
+                    <div class="text-center mb-3">
+                        <div class="jhs-feature-icon mx-auto" style="background:linear-gradient(135deg,var(--jhs-primary),var(--jhs-teal));color:#fff;width:56px;height:56px;font-size:1.5rem;border-radius:16px">
+                            <i class="bi bi-hospital"></i>
+                        </div>
+                    </div>
+                    <h2 class="h6 fw-bold mb-2 text-center">Layanan Darurat 24 Jam</h2>
+                    <p class="small text-secondary text-center">
                         IGDuty buka 24 jam setiap hari. Pasien darurat tidak memerlukan antrean online dan langsung
                         dilayani oleh tim gawat darurat.
                     </p>
                     <hr>
-                    <p class="small text-secondary mb-3">Pasien dapat mengambil antrean secara online melalui portal pasien.</p>
-                    <a href="{{ route('register') }}" class="btn btn-primary w-100">Daftar Sekarang</a>
+                    <p class="small text-secondary mb-3 text-center">Pasien dapat mengambil antrean secara online melalui portal pasien.</p>
+                    <a href="{{ route('register') }}" class="btn btn-primary w-100">
+                        <i class="bi bi-person-plus me-2"></i>Daftar Sekarang
+                    </a>
                 </div>
             </div>
         </div>
@@ -248,24 +281,25 @@
         <div class="row g-4">
             <div class="col-lg-4">
                 <div class="d-flex align-items-center gap-2 text-white fw-bold mb-3">
-                    <span class="jhs-logo-mark">+</span>{{ config('jhs.name') }}
+                    <img src="{{ asset('images/logo-icon.png') }}" alt="{{ config('jhs.name') }}" height="32" class="d-inline-block bg-white p-1 rounded-2 shadow-sm">
+                    <span>{{ config('jhs.name') }}</span>
                 </div>
-                <p class="small text-white-50 mb-0">{{ config('jhs.description') }}</p>
+                <p class="small text-white-50 mb-0" style="line-height:1.7">{{ config('jhs.description') }}</p>
             </div>
             <div class="col-6 col-lg-2">
                 <h3 class="h6 text-white">Navigasi</h3>
-                <ul class="list-unstyled small text-white-50">
+                <ul class="list-unstyled small">
                     @foreach (config('jhs.landing.sections') as $anchor => $label)
-                        <li class="mb-2"><a href="#{{ $anchor }}" class="text-white-50 text-decoration-none">{{ $label }}</a></li>
+                        <li class="mb-2"><a href="#{{ $anchor }}" class="text-white-50 text-decoration-none" style="transition:color .15s" onmouseover="this.style.color='rgba(255,255,255,0.85)'" onmouseout="this.style.color=''">{{ $label }}</a></li>
                     @endforeach
                 </ul>
             </div>
             <div class="col-6 col-lg-3">
                 <h3 class="h6 text-white">Kontak</h3>
                 <ul class="list-unstyled small text-white-50">
-                    <li class="mb-2">{{ config('jhs.contact.address') }}</li>
-                    <li class="mb-2">{{ config('jhs.contact.phone') }}</li>
-                    <li>{{ config('jhs.contact.email') }}</li>
+                    <li class="mb-2"><i class="bi bi-geo-alt me-2"></i>{{ config('jhs.contact.address') }}</li>
+                    <li class="mb-2"><i class="bi bi-telephone me-2"></i>{{ config('jhs.contact.phone') }}</li>
+                    <li><i class="bi bi-envelope me-2"></i>{{ config('jhs.contact.email') }}</li>
                 </ul>
             </div>
             <div class="col-lg-3">
@@ -278,7 +312,7 @@
             </div>
         </div>
 
-        <hr class="border-light opacity-25">
+        <hr class="border-light opacity-25 my-4">
 
         <p class="small text-white-50 mb-0 text-center">
             <i class="bi bi-copyright"></i> {{ date('Y') }} {{ config('jhs.name') }}. Seluruh hak cipta dilindungi.

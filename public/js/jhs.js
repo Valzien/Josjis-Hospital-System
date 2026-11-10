@@ -98,6 +98,12 @@
     const icon = opts.icon || (variant === "danger" ? "bi-exclamation-triangle" : "bi-question-circle");
     const url = opts.url || "";
     const formId = opts.formId || "";
+    let targetForm = opts.formElement || opts.form || null;
+
+    if (!targetForm && formId) {
+      const cleanId = formId.replace(/^#/, "");
+      targetForm = document.getElementById(cleanId) || document.querySelector(formId);
+    }
 
     let modal = document.getElementById("jhs-confirm-modal");
     if (!modal) {
@@ -119,6 +125,12 @@
         "</div>" +
         "</div></div></div>";
       document.body.appendChild(modal);
+    } else {
+      const iconWrapper = modal.querySelector(".jhs-confirm-icon");
+      if (iconWrapper) {
+        iconWrapper.className = "jhs-confirm-icon " + variant + " mx-auto mb-3";
+        iconWrapper.innerHTML = '<i class="bi ' + icon + '"></i>';
+      }
     }
 
     modal.querySelector("[data-confirm-title]").textContent = title;
@@ -128,23 +140,24 @@
     const okBtn = modal.querySelector("[data-confirm-ok]");
     okBtn.className = "btn btn-" + variant + " btn-sm px-3";
     okBtn.textContent = confirmText;
+    okBtn.disabled = false;
 
     const instance = bootstrap.Modal.getOrCreateInstance(modal);
     const handler = function () {
       okBtn.removeEventListener("click", handler);
       modal.removeEventListener("hidden.bs.modal", onHidden);
 
-      if (formId) {
-        const form = document.getElementById(formId);
-        if (form) {
-          const submit = form.querySelector("[type=submit]");
-          if (submit) {
-            submit.disabled = true;
-            submit.textContent = "Memproses...";
-          }
-          form.submit();
-          return;
+      if (targetForm) {
+        targetForm.dataset.confirmed = "1";
+        okBtn.disabled = true;
+        okBtn.textContent = "Memproses...";
+        const submit = targetForm.querySelector("[type=submit]");
+        if (submit) {
+          submit.disabled = true;
+          submit.textContent = "Memproses...";
         }
+        targetForm.submit();
+        return;
       }
       if (url) window.location.href = url;
     };
@@ -159,8 +172,12 @@
   };
 
   document.addEventListener("click", function (event) {
-    const trigger = event.target.closest("[data-confirm]");
+    const trigger = event.target.closest("[data-confirm], button[data-confirm-title], a[data-confirm-title]");
     if (!trigger) return;
+
+    const parentForm = trigger.closest("form");
+    if (parentForm && parentForm.dataset.confirmed === "1") return;
+
     event.preventDefault();
 
     let payload = {};
@@ -172,12 +189,13 @@
 
     // Atribut HTML dipakai sebagai fallback agar tidak wajib menulis JSON inline.
     payload.formId = payload.formId || trigger.getAttribute("data-confirm-form") || "";
-    payload.url = payload.url || trigger.getAttribute("data-confirm-url") || "";
+    payload.formElement = payload.formElement || (payload.formId ? null : parentForm);
+    payload.url = payload.url || trigger.getAttribute("data-confirm-url") || (trigger.tagName === "A" && trigger.getAttribute("href") && trigger.getAttribute("href") !== "#" ? trigger.getAttribute("href") : "");
     payload.title = payload.title || trigger.getAttribute("data-confirm-title") || "";
     payload.message = payload.message || trigger.getAttribute("data-confirm-message") || "";
     payload.confirmText = payload.confirmText || trigger.getAttribute("data-confirm-text") || "";
     payload.cancelText = payload.cancelText || trigger.getAttribute("data-confirm-cancel-text") || "";
-    payload.variant = payload.variant || trigger.getAttribute("data-confirm-variant") || "";
+    payload.variant = payload.variant || trigger.getAttribute("data-confirm-variant") || (trigger.classList.contains("btn-danger") || trigger.classList.contains("btn-outline-danger") ? "danger" : "warning");
 
     window.jhsConfirm(payload);
   });
@@ -337,6 +355,7 @@
   /* ------------------------------------------------------- ApexCharts render */
   const CHART_OPTION_KEYS = [
     "chart",
+    "series",
     "colors",
     "dataLabels",
     "stroke",
@@ -353,27 +372,101 @@
   ];
 
   window.jhsChart = function (canvasId, config, options) {
-    const el = document.getElementById(canvasId);
-    if (!el || typeof ApexCharts === "undefined") return null;
+    let el = document.getElementById(canvasId);
+    if (!el) return null;
 
-    const merged = Object.assign({}, config);
-    Object.keys(options || {}).forEach((key) => {
-      if (CHART_OPTION_KEYS.indexOf(key) === -1) return;
-      const value = options[key];
-      const current = merged[key];
-      merged[key] =
-        current && typeof current === "object" && !Array.isArray(current) && value && typeof value === "object"
-          ? Object.assign({}, current, value)
-          : value;
-    });
+    if (el.tagName.toLowerCase() === "canvas") {
+      const div = document.createElement("div");
+      div.id = el.id;
+      if (el.className) div.className = el.className;
+      el.parentNode.replaceChild(div, el);
+      el = div;
+    }
 
-    const chart = new ApexCharts(el, window.jhsChartTheme(merged));
-    chart.render();
+    function build() {
+      if (typeof ApexCharts === "undefined") return null;
 
-    window.jhsCharts = window.jhsCharts || {};
-    window.jhsCharts[canvasId] = chart;
+      let apexConfig = {};
 
-    return chart;
+      // Adapter: if Chart.js format (datasets) was provided
+      if (config && config.datasets) {
+        const isDonut = config.type === "doughnut" || config.type === "pie" || config.type === "donut";
+        if (isDonut) {
+          const firstDs = config.datasets[0] || {};
+          apexConfig = {
+            chart: { type: "donut", height: 260 },
+            labels: config.labels || [],
+            series: Array.isArray(firstDs.data) ? firstDs.data.map(Number) : [],
+            colors: firstDs.backgroundColor || ["#0d6efd", "#20c997", "#ffc107", "#dc3545", "#6f42c1", "#0dcaf0"],
+            legend: { position: "bottom", fontSize: "12px" },
+            plotOptions: {
+              pie: {
+                donut: {
+                  size: options?.cutout || "62%"
+                }
+              }
+            }
+          };
+        } else {
+          apexConfig = {
+            chart: { type: config.type === "bar" ? "bar" : "area", height: 280 },
+            xaxis: {
+              categories: config.labels || [],
+              labels: { rotate: -45, rotateAlways: false }
+            },
+            series: (config.datasets || []).map((ds) => ({
+              name: ds.label || "Data",
+              data: ds.data || []
+            }))
+          };
+          if (config.datasets && config.datasets[0] && config.datasets[0].borderColor) {
+            apexConfig.colors = config.datasets.map((ds) => ds.borderColor);
+          }
+        }
+      } else {
+        apexConfig = Object.assign({}, config);
+      }
+
+      const merged = Object.assign({}, apexConfig);
+      Object.keys(options || {}).forEach((key) => {
+        if (CHART_OPTION_KEYS.indexOf(key) === -1) return;
+        const value = options[key];
+        const current = merged[key];
+        merged[key] =
+          current && typeof current === "object" && !Array.isArray(current) && value && typeof value === "object"
+            ? Object.assign({}, current, value)
+            : value;
+      });
+
+      if (window.jhsCharts && window.jhsCharts[canvasId]) {
+        try {
+          window.jhsCharts[canvasId].destroy();
+        } catch (e) {}
+      }
+
+      const chart = new ApexCharts(el, window.jhsChartTheme(merged));
+      chart.render();
+
+      window.jhsCharts = window.jhsCharts || {};
+      window.jhsCharts[canvasId] = chart;
+
+      return chart;
+    }
+
+    if (typeof ApexCharts === "undefined") {
+      let script = document.querySelector("script[data-apexcharts-loader]");
+      if (!script) {
+        script = document.createElement("script");
+        script.setAttribute("data-apexcharts-loader", "1");
+        script.src = "/vendor/apexcharts/js/apexcharts.min.js";
+        script.async = true;
+        document.head.appendChild(script);
+      }
+      script.addEventListener("load", build);
+      return null;
+    }
+
+    return build();
   };
 
   function initTooltips() {
@@ -451,7 +544,8 @@
           message: form.dataset.confirmMessage || "Lanjutkan tindakan ini?",
           confirmText: form.dataset.confirmText || "Ya, Lanjutkan",
           variant: form.dataset.confirmVariant || "warning",
-          formId: form.id,
+          formElement: form,
+          formId: form.id || "",
         });
       });
     });

@@ -26,6 +26,7 @@ class MedicineRequest extends FormRequest
             'stock' => ['nullable', 'integer', 'min:0', 'max:1000000'],
             'minimum_stock' => ['required', 'integer', 'min:0', 'max:1000000'],
             'price' => ['required', 'numeric', 'min:0', 'max:10000000'],
+            'expiry_date' => ['nullable', 'date'],
             'description' => ['nullable', 'string', 'max:1000'],
             'status' => ['required', Rule::in(array_keys(ActiveStatus::options()))],
         ];

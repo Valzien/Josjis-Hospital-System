@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Fillable([
     'medicine_code', 'name', 'category', 'unit', 'stock',
-    'minimum_stock', 'price', 'description', 'status',
+    'minimum_stock', 'price', 'expiry_date', 'description', 'status',
 ])]
 class Medicine extends Model
 {
@@ -24,6 +24,7 @@ class Medicine extends Model
         return [
             'status' => ActiveStatus::class,
             'price' => 'decimal:2',
+            'expiry_date' => 'date',
         ];
     }
 
@@ -71,6 +72,18 @@ class Medicine extends Model
     public function isLowStock(): bool
     {
         return $this->stock <= $this->minimum_stock;
+    }
+
+    public function isExpired(): bool
+    {
+        return $this->expiry_date !== null && $this->expiry_date->isPast();
+    }
+
+    public function isExpiringSoon(int $days = 30): bool
+    {
+        return $this->expiry_date !== null
+            && ! $this->isExpired()
+            && $this->expiry_date->diffInDays(now()) <= $days;
     }
 
     public function isOutOfStock(): bool

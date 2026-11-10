@@ -36,7 +36,11 @@ class ReceptionistController extends Controller
 
     public function create(): View
     {
-        return view('admin.receptionists.form', ['receptionist' => new Receptionist(['status' => ActiveStatus::Active])]);
+        return view('admin.receptionists.form', [
+            'receptionist' => new Receptionist(['status' => ActiveStatus::Active]),
+            'statuses' => ActiveStatus::options(),
+            'availableUsers' => $this->availableUsers(),
+        ]);
     }
 
     public function store(StaffRequest $request): RedirectResponse
@@ -55,7 +59,11 @@ class ReceptionistController extends Controller
 
     public function edit(Receptionist $receptionist): View
     {
-        return view('admin.receptionists.form', ['receptionist' => $receptionist]);
+        return view('admin.receptionists.form', [
+            'receptionist' => $receptionist,
+            'statuses' => ActiveStatus::options(),
+            'availableUsers' => $this->availableUsers($receptionist),
+        ]);
     }
 
     public function update(StaffRequest $request, Receptionist $receptionist): RedirectResponse
@@ -79,5 +87,19 @@ class ReceptionistController extends Controller
         $receptionist->delete();
 
         return redirect()->route('admin.receptionists.index')->with('success', "Resepsionis {$name} telah dihapus.");
+    }
+
+    private function availableUsers(?Receptionist $receptionist = null)
+    {
+        return User::query()
+            ->where('role', UserRole::Receptionist->value)
+            ->where(function ($q) use ($receptionist) {
+                $q->whereDoesntHave('receptionist');
+                if ($receptionist?->user_id) {
+                    $q->orWhere('id', $receptionist->user_id);
+                }
+            })
+            ->orderBy('name')
+            ->get();
     }
 }

@@ -44,8 +44,58 @@ class ReceptionPagesTest extends SmokeTestCase
 
         $queue = Queue::factory()->waiting()->create();
 
-        $this->post(route('reception.queues.call', $queue))->assertRedirect();
+        $this->patch(route('reception.queues.call', $queue))->assertRedirect();
 
         $this->assertSame(QueueStatus::Called, $queue->fresh()->status);
+    }
+
+    public function test_receptionist_can_recall_a_called_queue(): void
+    {
+        $this->actingAs(User::factory()->receptionist()->create());
+
+        $queue = Queue::factory()->create([
+            'status' => QueueStatus::Called,
+            'called_at' => now()->subMinutes(10),
+        ]);
+
+        $this->patch(route('reception.queues.recall', $queue))->assertRedirect();
+
+        $this->assertSame(QueueStatus::Called, $queue->fresh()->status);
+        $this->assertTrue($queue->fresh()->called_at->greaterThan(now()->subSeconds(5)));
+    }
+
+    public function test_receptionist_can_close_stale_queues(): void
+    {
+        $this->actingAs(User::factory()->receptionist()->create());
+
+        $staleWaiting = Queue::factory()->create([
+            'queue_date' => now()->subDay()->toDateString(),
+            'status' => QueueStatus::Waiting,
+        ]);
+        $staleCalled = Queue::factory()->create([
+            'queue_date' => now()->subDays(2)->toDateString(),
+            'status' => QueueStatus::Called,
+        ]);
+        $todayWaiting = Queue::factory()->create([
+            'queue_date' => now()->toDateString(),
+            'status' => QueueStatus::Waiting,
+        ]);
+
+        $this->post(route('reception.queues.close-stale'))->assertRedirect();
+
+        $this->assertSame(QueueStatus::Cancelled, $staleWaiting->fresh()->status);
+        $this->assertSame(QueueStatus::Cancelled, $staleCalled->fresh()->status);
+        $this->assertSame(QueueStatus::Waiting, $todayWaiting->fresh()->status);
+    }
+
+    public function test_ticket_page_renders(): void
+    {
+        $this->actingAs(User::factory()->receptionist()->create());
+
+        $queue = Queue::factory()->waiting()->create();
+
+        $this->get(route('reception.queues.ticket', $queue))
+            ->assertOk()
+            ->assertSee($queue->queue_number);
     }
 }

@@ -28,6 +28,7 @@ class QueueController extends Controller
             ->with(['patient', 'medicalRecord.prescription'])
             ->forDoctor($doctorId)
             ->onDate($date)
+            ->where('status', '!=', QueueStatus::Waiting->value)
             ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')->value()))
             ->when($request->filled('q'), fn ($q) => $q->whereHas('patient', fn ($p) => $p->search($request->string('q')->trim()->value())))
             ->orderBy('queue_number')
@@ -36,7 +37,7 @@ class QueueController extends Controller
 
         return view('doctor.queues.index', [
             'queues' => $queues,
-            'statuses' => QueueStatus::options(),
+            'statuses' => collect(QueueStatus::options())->except(QueueStatus::Waiting->value)->all(),
             'date' => $date->toDateString(),
             'filters' => $request->only('status', 'q'),
             'summary' => Queue::statusSummaryForToday($doctorId),
@@ -59,6 +60,10 @@ class QueueController extends Controller
     public function start(Queue $queue): RedirectResponse
     {
         $this->ensureOwnQueue($queue);
+
+        if ($queue->status === QueueStatus::Waiting) {
+            return back()->with('error', 'Antrean belum dipanggil/diverifikasi oleh resepsionis.');
+        }
 
         try {
             $this->queues->updateStatus($queue, QueueStatus::InExamination);

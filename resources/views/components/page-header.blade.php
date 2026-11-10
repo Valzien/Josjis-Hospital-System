@@ -5,20 +5,18 @@
 ])
 
 <div {{ $attributes->class(['jhs-page-header', 'jhs-no-print']) }}>
-    <div>
-        @if ($icon)
-            <div class="d-flex align-items-center gap-2 mb-1">
-                <span class="jhs-stat-icon jhs-icon-soft-primary" style="width:40px;height:40px;font-size:1.1rem;border-radius:12px">
-                    <i class="bi {{ $icon }}"></i>
-                </span>
-            </div>
-        @endif
-        <h1 class="jhs-page-title">{{ $title }}</h1>
+    <div class="min-w-0">
+        <div class="d-flex align-items-center gap-2 mb-1">
+            @if ($icon)
+                <span class="text-primary fs-4 lh-1"><i class="bi {{ $icon }}"></i></span>
+            @endif
+            <h1 class="jhs-page-title mb-0">{{ $title }}</h1>
+        </div>
         @if ($description)
-            <p class="jhs-page-description">{{ $description }}</p>
+            <p class="jhs-page-description mb-0">{{ $description }}</p>
         @endif
     </div>
     @isset($actions)
-        <div class="jhs-page-actions">{{ $actions }}</div>
+        <div class="jhs-page-actions d-flex align-items-center gap-2 flex-wrap">{{ $actions }}</div>
     @endisset
 </div>

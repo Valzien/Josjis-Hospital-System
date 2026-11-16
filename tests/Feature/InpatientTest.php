@@ -5,10 +5,12 @@ namespace Tests\Feature;
 use App\Enums\ActiveStatus;
 use App\Enums\AdmissionStatus;
 use App\Enums\BedStatus;
+use App\Enums\DiagnosisType;
 use App\Enums\RoomClass;
 use App\Models\Admission;
 use App\Models\Bed;
 use App\Models\Doctor;
+use App\Models\Icd10Code;
 use App\Models\Invoice;
 use App\Models\Patient;
 use App\Models\Room;
@@ -300,5 +302,180 @@ class InpatientTest extends SmokeTestCase
             ->assertOk()
             ->assertSee($invoice->code)
             ->assertSee('dr. Andi Prasetyo');
+    }
+
+    public function test_doctor_records_vitals_icd10_diagnoses_and_discharge_summary(): void
+    {
+        $doctor = Doctor::factory()->withAccount()->create(['name' => 'dr. Andi Prasetyo']);
+        $patient = Patient::factory()->create(['name' => 'Dewi Lestari']);
+        ['bed' => $bed] = $this->availableBed();
+
+        $admission = app(AdmissionService::class)->admit([
+            'patient_id' => $patient->id,
+            'doctor_id' => $doctor->id,
+            'bed_id' => $bed->id,
+        ]);
+
+        $this->actingAs($doctor->user);
+
+        // Visite dengan tanda vital.
+        $this->post(route('doctor.admissions.visit', $admission), [
+            'visited_at' => now()->format('Y-m-d H:i:s'),
+            'notes' => 'Demam menurun, batuk berkurang.',
+            'temperature' => 37.8,
+            'blood_pressure' => 120,
+            'pulse' => 88,
+            'respiratory_rate' => 20,
+            'oxygen_saturation' => 98,
+            'weight' => 58.5,
+        ])->assertRedirect()->assertSessionHas('success');
+
+        $visit = $admission->visits()->firstOrFail();
+        $this->assertSame('37.8', (string) $visit->temperature);
+        $this->assertSame(88, $visit->pulse);
+        $this->assertSame(98, $visit->oxygen_saturation);
+
+        $this->get(route('doctor.admissions.show', $admission))
+            ->assertOk()
+            ->assertSee('Riwayat Visite')
+            ->assertSee('37.8')
+            ->assertSee('SpO₂');
+
+        // Validasi tanda vital di luar rentang.
+        $this->post(route('doctor.admissions.visit', $admission), [
+            'notes' => 'Suhu tidak valid.',
+            'temperature' => 60,
+        ])->assertSessionHasErrors('temperature');
+
+        $pneumonia = Icd10Code::query()->create([
+            'code' => 'J18.9',
+            'name' => 'Pneumonia, tidak spesifik',
+            'category' => 'Pernapasan',
+        ]);
+        $dehydration = Icd10Code::query()->create([
+            'code' => 'E86',
+            'name' => 'Dehidrasi',
+            'category' => 'Endokrin & Metabolik',
+        ]);
+        $hypertension = Icd10Code::query()->create([
+            'code' => 'I10',
+            'name' => 'Hipertensi esensial (primer)',
+            'category' => 'Sirkulasi',
+        ]);
+
+        $this->post(route('doctor.admissions.diagnosis', $admission), [
+            'icd10_code_id' => $pneumonia->id,
+            'type' => DiagnosisType::Primary->value,
+            'notes' => 'Terkonfirmasi pada foto toraks.',
+        ])->assertRedirect()->assertSessionHas('success');
+
+        $this->post(route('doctor.admissions.diagnosis', $admission), [
+            'icd10_code_id' => $dehydration->id,
+            'type' => DiagnosisType::Secondary->value,
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('admission_diagnoses', [
+            'admission_id' => $admission->id,
+            'code' => 'J18.9',
+            'type' => DiagnosisType::Primary->value,
+        ]);
+        $this->assertDatabaseHas('admission_diagnoses', [
+            'admission_id' => $admission->id,
+            'code' => 'E86',
+            'type' => DiagnosisType::Secondary->value,
+        ]);
+
+        // Diagnosis utama baru menurunkan diagnosis utama sebelumnya.
+        $this->post(route('doctor.admissions.diagnosis', $admission), [
+            'icd10_code_id' => $hypertension->id,
+            'type' => DiagnosisType::Primary->value,
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('admission_diagnoses', [
+            'admission_id' => $admission->id,
+            'code' => 'I10',
+            'type' => DiagnosisType::Primary->value,
+        ]);
+        $this->assertDatabaseHas('admission_diagnoses', [
+            'admission_id' => $admission->id,
+            'code' => 'J18.9',
+            'type' => DiagnosisType::Secondary->value,
+        ]);
+
+        // Diagnosis ganda pada rawat inap yang sama ditolak.
+        $this->post(route('doctor.admissions.diagnosis', $admission), [
+            'icd10_code_id' => $dehydration->id,
+            'type' => DiagnosisType::Secondary->value,
+        ])->assertSessionHas('error');
+
+        // Diagnosis tambahan dapat dihapus.
+        $secondary = $admission->diagnoses()->where('code', 'E86')->firstOrFail();
+        $this->delete(route('doctor.admissions.diagnosis.destroy', [$admission, $secondary]))
+            ->assertRedirect();
+        $this->assertDatabaseMissing('admission_diagnoses', ['id' => $secondary->id]);
+
+        // Ringkasan pulang diisi dokter.
+        $this->put(route('doctor.admissions.summary.update', $admission), [
+            'discharge_condition' => 'Keadaan umum baik, demam sudah turun.',
+            'discharge_plan' => 'Kontrol poliklinik dan melanjutkan antibiotik oral.',
+            'follow_up_date' => now()->addWeek()->toDateString(),
+        ])->assertRedirect()->assertSessionHas('success');
+
+        $admission->refresh();
+        $this->assertSame('Keadaan umum baik, demam sudah turun.', $admission->discharge_condition);
+        $this->assertNotNull($admission->follow_up_date);
+
+        $this->get(route('doctor.admissions.show', $admission))
+            ->assertOk()
+            ->assertSee('J18.9')
+            ->assertSee('Pneumonia, tidak spesifik')
+            ->assertSee('Ringkasan Pulang');
+
+        // Ringkasan pulang dapat dicetak oleh dokter dan resepsionis.
+        $this->get(route('doctor.admissions.summary.print', $admission))
+            ->assertOk()
+            ->assertSee('RINGKASAN PULANG RAWAT INAP')
+            ->assertSee('I10')
+            ->assertSee('Keadaan umum baik, demam sudah turun.')
+            ->assertSee('dr. Andi Prasetyo');
+
+        $this->actingAs(User::factory()->receptionist()->create())
+            ->get(route('reception.admissions.summary.print', $admission))
+            ->assertOk()
+            ->assertSee($admission->code)
+            ->assertSee('RINGKASAN PULANG RAWAT INAP');
+
+        $this->get(route('reception.admissions.show', $admission))
+            ->assertOk()
+            ->assertSee('I10')
+            ->assertSee('Keadaan umum baik, demam sudah turun.');
+
+        // Ringkasan tetap tersimpan setelah pasien dipulangkan.
+        $admission = app(AdmissionService::class)->discharge($admission);
+        $this->assertSame('Keadaan umum baik, demam sudah turun.', $admission->discharge_condition);
+    }
+
+    public function test_other_doctor_cannot_access_admission_summary(): void
+    {
+        $doctor = Doctor::factory()->withAccount()->create();
+        ['bed' => $bed] = $this->availableBed();
+
+        $admission = app(AdmissionService::class)->admit([
+            'patient_id' => Patient::factory()->create()->id,
+            'doctor_id' => $doctor->id,
+            'bed_id' => $bed->id,
+        ]);
+
+        $otherDoctor = Doctor::factory()->withAccount()->create();
+
+        $this->actingAs($otherDoctor->user)
+            ->get(route('doctor.admissions.summary.print', $admission))
+            ->assertForbidden();
+
+        $this->actingAs($otherDoctor->user)
+            ->put(route('doctor.admissions.summary.update', $admission), [
+                'discharge_condition' => 'Tidak berhak.',
+            ])
+            ->assertForbidden();
     }
 }

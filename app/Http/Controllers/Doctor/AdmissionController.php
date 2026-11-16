@@ -5,8 +5,12 @@ namespace App\Http\Controllers\Doctor;
 use App\Enums\AdmissionStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Doctor\AdmissionChargeRequest;
+use App\Http\Requests\Doctor\AdmissionDiagnosisRequest;
 use App\Http\Requests\Doctor\AdmissionVisitRequest;
+use App\Http\Requests\Doctor\DischargeSummaryRequest;
 use App\Models\Admission;
+use App\Models\AdmissionDiagnosis;
+use App\Models\Icd10Code;
 use App\Models\Service;
 use App\Services\AdmissionService;
 use App\Services\AuditLogger;
@@ -59,12 +63,13 @@ class AdmissionController extends Controller
         $admission->load([
             'patient', 'doctor', 'room', 'bed', 'invoice', 'createdBy',
             'visits.doctor', 'movements.fromBed.room', 'movements.toBed.room',
-            'charges.service',
+            'charges.service', 'diagnoses.icd10Code', 'diagnoses.doctor', 'primaryDiagnosis', 'latestVisit',
         ]);
 
         return view('doctor.admissions.show', [
             'admission' => $admission,
             'services' => Service::query()->active()->orderBy('category')->orderBy('name')->get(),
+            'icd10Codes' => Icd10Code::query()->orderBy('category')->orderBy('code')->get()->groupBy('category'),
             'chargesTotal' => $admission->chargesTotal(),
             'dayCount' => $admission->dayCount(),
         ]);
@@ -79,7 +84,7 @@ class AdmissionController extends Controller
                 'doctor_id' => $this->doctorId() ?: $admission->doctor_id,
                 'visited_at' => $request->input('visited_at') ?: now(),
                 'notes' => $request->string('notes')->trim()->value(),
-            ], auth()->id());
+            ] + $request->vitals(), auth()->id());
         } catch (RuntimeException $e) {
             return back()->withInput()->with('error', $e->getMessage());
         }
@@ -87,6 +92,63 @@ class AdmissionController extends Controller
         $this->audit->created('admission_visit', 'AdmissionVisit', $admission->id, "Mencatat visite pasien rawat inap {$admission->code}.");
 
         return back()->with('success', 'Catatan visite berhasil disimpan.');
+    }
+
+    public function diagnosis(AdmissionDiagnosisRequest $request, Admission $admission): RedirectResponse
+    {
+        $this->ensureOwnAdmission($admission);
+
+        try {
+            $this->admissions->addDiagnosis($admission, [
+                'icd10_code_id' => $request->integer('icd10_code_id'),
+                'type' => $request->string('type')->value(),
+                'notes' => $request->filled('notes') ? $request->string('notes')->trim()->value() : null,
+                'doctor_id' => $this->doctorId() ?: $admission->doctor_id,
+            ], auth()->id());
+        } catch (RuntimeException $e) {
+            return back()->withInput()->with('error', $e->getMessage());
+        }
+
+        $this->audit->created('admission_diagnosis', 'AdmissionDiagnosis', $admission->id, "Menambahkan diagnosis ICD-10 pada rawat inap {$admission->code}.");
+
+        return back()->with('success', 'Diagnosis berhasil ditambahkan.');
+    }
+
+    public function destroyDiagnosis(Admission $admission, AdmissionDiagnosis $diagnosis): RedirectResponse
+    {
+        $this->ensureOwnAdmission($admission);
+
+        try {
+            $this->admissions->removeDiagnosis($admission, $diagnosis, auth()->id());
+        } catch (RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        $this->audit->deleted('admission_diagnosis', 'AdmissionDiagnosis', $diagnosis->id, "Menghapus diagnosis {$diagnosis->code} pada rawat inap {$admission->code}.");
+
+        return back()->with('success', 'Diagnosis berhasil dihapus.');
+    }
+
+    public function updateSummary(DischargeSummaryRequest $request, Admission $admission): RedirectResponse
+    {
+        $this->ensureOwnAdmission($admission);
+
+        try {
+            $this->admissions->updateDischargeSummary($admission, $request->summary());
+        } catch (RuntimeException $e) {
+            return back()->withInput()->with('error', $e->getMessage());
+        }
+
+        $this->audit->updated('admission', 'Admission', $admission->id, "Menyimpan ringkasan pulang rawat inap {$admission->code}.");
+
+        return back()->with('success', 'Ringkasan pulang berhasil disimpan.');
+    }
+
+    public function summary(Admission $admission): View
+    {
+        $this->ensureOwnAdmission($admission);
+
+        return view('admissions.summary', $this->summaryData($admission));
     }
 
     public function charge(AdmissionChargeRequest $request, Admission $admission): RedirectResponse
@@ -114,6 +176,20 @@ class AdmissionController extends Controller
     private function doctorId(): int
     {
         return auth()->user()->doctor?->id ?? 0;
+    }
+
+    /** @return array<string, mixed> */
+    private function summaryData(Admission $admission): array
+    {
+        $admission->load([
+            'patient', 'doctor', 'room', 'bed',
+            'diagnoses.icd10Code', 'visits.doctor', 'latestVisit',
+        ]);
+
+        return [
+            'admission' => $admission,
+            'dayCount' => $admission->dayCount(),
+        ];
     }
 
     private function ensureOwnAdmission(Admission $admission): void

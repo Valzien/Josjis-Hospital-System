@@ -160,6 +160,7 @@ Route::middleware(['auth', 'role:receptionist,admin'])
         Route::match(['post', 'patch'], 'admissions/{admission}/transfer', [Reception\AdmissionController::class, 'transfer'])->name('admissions.transfer');
         Route::match(['post', 'patch'], 'admissions/{admission}/discharge', [Reception\AdmissionController::class, 'discharge'])->name('admissions.discharge');
         Route::match(['post', 'patch'], 'admissions/{admission}/cancel', [Reception\AdmissionController::class, 'cancel'])->name('admissions.cancel');
+        Route::get('admissions/{admission}/summary/print', [Reception\AdmissionController::class, 'summary'])->name('admissions.summary.print');
     });
 
 /*
@@ -200,6 +201,10 @@ Route::middleware(['auth', 'role:doctor,admin'])
         Route::get('admissions/{admission}', [Doctor\AdmissionController::class, 'show'])->name('admissions.show');
         Route::post('admissions/{admission}/visits', [Doctor\AdmissionController::class, 'visit'])->name('admissions.visit');
         Route::post('admissions/{admission}/charges', [Doctor\AdmissionController::class, 'charge'])->name('admissions.charge');
+        Route::post('admissions/{admission}/diagnoses', [Doctor\AdmissionController::class, 'diagnosis'])->name('admissions.diagnosis');
+        Route::delete('admissions/{admission}/diagnoses/{diagnosis}', [Doctor\AdmissionController::class, 'destroyDiagnosis'])->name('admissions.diagnosis.destroy');
+        Route::put('admissions/{admission}/summary', [Doctor\AdmissionController::class, 'updateSummary'])->name('admissions.summary.update');
+        Route::get('admissions/{admission}/summary/print', [Doctor\AdmissionController::class, 'summary'])->name('admissions.summary.print');
     });
 
 /*

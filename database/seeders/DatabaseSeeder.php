@@ -12,6 +12,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call(SettingSeeder::class);
+        $this->call(Icd10Seeder::class);
 
         if (config('jhs.demo_credentials_enabled')) {
             $this->call(DemoSeeder::class);

@@ -83,7 +83,7 @@ class AdmissionController extends Controller
         $admission->load([
             'patient', 'doctor', 'room', 'bed', 'invoice', 'createdBy',
             'visits.doctor', 'movements.fromBed.room', 'movements.toBed.room',
-            'charges.service',
+            'charges.service', 'diagnoses.icd10Code', 'primaryDiagnosis', 'latestVisit',
         ]);
 
         return view('reception.admissions.show', [
@@ -95,6 +95,19 @@ class AdmissionController extends Controller
                 ->orderBy('code')
                 ->get(),
             'chargesTotal' => $admission->chargesTotal(),
+            'dayCount' => $admission->dayCount(),
+        ]);
+    }
+
+    public function summary(Admission $admission): View
+    {
+        $admission->load([
+            'patient', 'doctor', 'room', 'bed',
+            'diagnoses.icd10Code', 'visits.doctor', 'latestVisit',
+        ]);
+
+        return view('admissions.summary', [
+            'admission' => $admission,
             'dayCount' => $admission->dayCount(),
         ]);
     }

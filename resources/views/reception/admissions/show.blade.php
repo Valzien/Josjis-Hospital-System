@@ -7,6 +7,11 @@
                    :description="($admission->patient?->name ?? '-').' · '.($admission->room?->name ?? '-').' · '.($admission->admitted_at?->translatedFormat('d F Y H:i') ?? '-')"
                    icon="bi-hospital">
         <x-slot:actions>
+            @if ($admission->hasDischargeSummary() || $admission->status === \App\Enums\AdmissionStatus::Discharged)
+                <a href="{{ route('reception.admissions.summary.print', $admission) }}" target="_blank" class="btn btn-light border btn-sm">
+                    <i class="bi bi-printer me-1"></i>Ringkasan Pulang
+                </a>
+            @endif
             <a href="{{ route('reception.admissions.index') }}" class="btn btn-light border btn-sm">
                 <i class="bi bi-arrow-left me-1"></i>Daftar Rawat Inap
             </a>
@@ -102,6 +107,41 @@
                 </div>
             </x-card>
 
+            <x-card title="Diagnosis ICD-10" icon="bi-journal-medical" class="mt-3">
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Kode</th>
+                                <th>Diagnosis</th>
+                                <th>Jenis</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($admission->diagnoses as $diagnosis)
+                                <tr>
+                                    <td class="small fw-semibold text-nowrap">{{ $diagnosis->code }}</td>
+                                    <td class="small">
+                                        <div class="fw-semibold">{{ $diagnosis->name }}</div>
+                                        @if ($diagnosis->notes)
+                                            <div class="fs-7 text-muted-2 text-pre-line">{{ $diagnosis->notes }}</div>
+                                        @endif
+                                    </td>
+                                    <td><x-status-badge :status="$diagnosis->type" /></td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="3">
+                                        <x-empty-state icon="bi-journal-medical" title="Belum ada diagnosis"
+                                                       text="Diagnosis ICD-10 diisi oleh dokter yang merawat." />
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </x-card>
+
             <x-card title="Rincian Biaya" icon="bi-list-check" class="mt-3">
                 <div class="table-responsive">
                     <table class="table align-middle mb-0">
@@ -160,12 +200,55 @@
                                 <div class="fs-7 text-muted-2">{{ $visit->visited_at?->translatedFormat('d F Y H:i') }}</div>
                             </div>
                             <div class="small text-pre-line">{{ $visit->notes }}</div>
+                            @if ($visit->vitalSigns() !== [])
+                                <div class="d-flex flex-wrap gap-1 mt-2">
+                                    @foreach ($visit->vitalSigns() as $label => $value)
+                                        <span class="badge text-bg-light border">{{ $label }}: {{ $value }}</span>
+                                    @endforeach
+                                </div>
+                            @endif
                         </div>
                     @empty
                         <x-empty-state icon="bi-clipboard2-pulse" title="Belum ada catatan visite"
                                        text="Catatan visite diisi oleh dokter yang merawat." />
                     @endforelse
                 </div>
+            </x-card>
+
+            <x-card title="Ringkasan Pulang" icon="bi-file-earmark-medical" class="mt-3">
+                @if ($admission->hasDischargeSummary() || $admission->discharge_notes)
+                    <div class="row g-3 small">
+                        @if ($admission->discharge_condition)
+                            <div class="col-12">
+                                <div class="text-muted-2 fs-7">Kondisi Saat Pulang</div>
+                                <div class="text-pre-line">{{ $admission->discharge_condition }}</div>
+                            </div>
+                        @endif
+                        @if ($admission->discharge_plan)
+                            <div class="col-12">
+                                <div class="text-muted-2 fs-7">Rencana Tindak Lanjut</div>
+                                <div class="text-pre-line">{{ $admission->discharge_plan }}</div>
+                            </div>
+                        @endif
+                        @if ($admission->follow_up_date)
+                            <div class="col-sm-6">
+                                <div class="text-muted-2 fs-7">Tanggal Kontrol</div>
+                                <div class="fw-semibold">{{ $admission->follow_up_date->translatedFormat('d F Y') }}</div>
+                            </div>
+                        @endif
+                        @if ($admission->discharge_notes)
+                            <div class="col-12">
+                                <div class="text-muted-2 fs-7">Catatan Pulang</div>
+                                <div class="text-pre-line">{{ $admission->discharge_notes }}</div>
+                            </div>
+                        @endif
+                    </div>
+                @else
+                    <div class="alert alert-light border small mb-0">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Ringkasan pulang belum diisi oleh dokter yang merawat.
+                    </div>
+                @endif
             </x-card>
 
             <x-card title="Riwayat Tempat Tidur" icon="bi-arrow-left-right" class="mt-3">

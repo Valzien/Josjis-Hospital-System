@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\AdmissionStatus;
+use App\Enums\DiagnosisType;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
@@ -16,7 +17,8 @@ use Illuminate\Support\Carbon;
 #[Fillable([
     'code', 'patient_id', 'doctor_id', 'room_id', 'bed_id', 'status',
     'admitted_at', 'discharged_at', 'complaint', 'diagnosis', 'notes',
-    'discharge_notes', 'created_by',
+    'discharge_notes', 'discharge_condition', 'discharge_plan',
+    'follow_up_date', 'created_by',
 ])]
 class Admission extends Model
 {
@@ -28,6 +30,7 @@ class Admission extends Model
             'status' => AdmissionStatus::class,
             'admitted_at' => 'datetime',
             'discharged_at' => 'datetime',
+            'follow_up_date' => 'date',
         ];
     }
 
@@ -69,6 +72,24 @@ class Admission extends Model
     public function charges(): HasMany
     {
         return $this->hasMany(AdmissionCharge::class);
+    }
+
+    public function diagnoses(): HasMany
+    {
+        return $this->hasMany(AdmissionDiagnosis::class)
+            ->orderByRaw("case when type = 'PRIMARY' then 0 else 1 end")
+            ->orderBy('diagnosed_at');
+    }
+
+    public function primaryDiagnosis(): HasOne
+    {
+        return $this->hasOne(AdmissionDiagnosis::class)
+            ->where('type', DiagnosisType::Primary->value);
+    }
+
+    public function latestVisit(): HasOne
+    {
+        return $this->hasOne(AdmissionVisit::class)->latestOfMany('visited_at');
     }
 
     public function invoice(): HasOne
@@ -129,5 +150,11 @@ class Admission extends Model
     public function chargesTotal(): float
     {
         return (float) $this->charges()->sum('subtotal');
+    }
+
+    /** Ringkasan pulang dianggap lengkap bila kondisi dan rencana sudah diisi. */
+    public function hasDischargeSummary(): bool
+    {
+        return filled($this->discharge_condition) || filled($this->discharge_plan);
     }
 }

@@ -5,10 +5,13 @@ namespace App\Services;
 use App\Enums\AdmissionChargeType;
 use App\Enums\AdmissionStatus;
 use App\Enums\BedStatus;
+use App\Enums\DiagnosisType;
 use App\Models\Admission;
 use App\Models\AdmissionCharge;
+use App\Models\AdmissionDiagnosis;
 use App\Models\AdmissionVisit;
 use App\Models\Bed;
+use App\Models\Icd10Code;
 use App\Models\Service;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -129,7 +132,7 @@ class AdmissionService
     }
 
     /**
-     * @param  array{notes:string, visited_at?:mixed, doctor_id?:?int}  $data
+     * @param  array{notes:string, visited_at?:mixed, doctor_id?:?int, temperature?:mixed, blood_pressure?:mixed, pulse?:mixed, respiratory_rate?:mixed, oxygen_saturation?:mixed, weight?:mixed}  $data
      *
      * @throws RuntimeException
      */
@@ -143,8 +146,98 @@ class AdmissionService
             'doctor_id' => $data['doctor_id'] ?? null,
             'visited_at' => $data['visited_at'] ?? now(),
             'notes' => $data['notes'],
+            'temperature' => $data['temperature'] ?? null,
+            'blood_pressure' => $data['blood_pressure'] ?? null,
+            'pulse' => $data['pulse'] ?? null,
+            'respiratory_rate' => $data['respiratory_rate'] ?? null,
+            'oxygen_saturation' => $data['oxygen_saturation'] ?? null,
+            'weight' => $data['weight'] ?? null,
             'created_by' => $userId,
         ]);
+    }
+
+    /**
+     * Menambahkan diagnosis ICD-10. Hanya satu diagnosis utama yang disimpan;
+     * diagnosis utama lama otomatis diturunkan menjadi diagnosis tambahan.
+     *
+     * @param  array{icd10_code_id:int, type:string, notes?:?string, doctor_id?:?int, diagnosed_at?:mixed}  $data
+     *
+     * @throws RuntimeException
+     */
+    public function addDiagnosis(Admission $admission, array $data, ?int $userId = null): AdmissionDiagnosis
+    {
+        return DB::transaction(function () use ($admission, $data, $userId) {
+            /** @var Admission $locked */
+            $locked = Admission::query()->lockForUpdate()->findOrFail($admission->id);
+
+            if (! $locked->isActive()) {
+                throw new RuntimeException('Diagnosis hanya dapat ditambahkan pada rawat inap yang masih aktif.');
+            }
+
+            $code = Icd10Code::query()->findOrFail($data['icd10_code_id']);
+
+            if ($locked->diagnoses()->where('code', $code->code)->exists()) {
+                throw new RuntimeException("Diagnosis {$code->code} sudah tercatat pada rawat inap ini.");
+            }
+
+            $type = DiagnosisType::tryFrom((string) $data['type']) ?? DiagnosisType::Secondary;
+
+            if ($type === DiagnosisType::Primary) {
+                AdmissionDiagnosis::query()
+                    ->where('admission_id', $locked->id)
+                    ->where('type', DiagnosisType::Primary->value)
+                    ->update(['type' => DiagnosisType::Secondary->value]);
+            }
+
+            return $locked->diagnoses()->create([
+                'icd10_code_id' => $code->id,
+                'code' => $code->code,
+                'name' => $code->name,
+                'type' => $type->value,
+                'notes' => $data['notes'] ?? null,
+                'doctor_id' => $data['doctor_id'] ?? null,
+                'diagnosed_at' => $data['diagnosed_at'] ?? now(),
+                'created_by' => $userId,
+            ]);
+        });
+    }
+
+    /**
+     * @throws RuntimeException
+     */
+    public function removeDiagnosis(Admission $admission, AdmissionDiagnosis $diagnosis, ?int $userId = null): void
+    {
+        if (! $admission->isActive()) {
+            throw new RuntimeException('Diagnosis hanya dapat dihapus pada rawat inap yang masih aktif.');
+        }
+
+        if ($diagnosis->admission_id !== $admission->id) {
+            throw new RuntimeException('Diagnosis tidak termasuk dalam rawat inap ini.');
+        }
+
+        $diagnosis->delete();
+    }
+
+    /**
+     * Menyimpan ringkasan pulang yang ditulis dokter.
+     *
+     * @param  array{discharge_condition?:?string, discharge_plan?:?string, follow_up_date?:mixed}  $data
+     *
+     * @throws RuntimeException
+     */
+    public function updateDischargeSummary(Admission $admission, array $data): Admission
+    {
+        if ($admission->status === AdmissionStatus::Cancelled) {
+            throw new RuntimeException('Ringkasan pulang tidak dapat diisi pada rawat inap yang dibatalkan.');
+        }
+
+        $admission->update([
+            'discharge_condition' => $data['discharge_condition'] ?? null,
+            'discharge_plan' => $data['discharge_plan'] ?? null,
+            'follow_up_date' => $data['follow_up_date'] ?? null,
+        ]);
+
+        return $admission->refresh();
     }
 
     /**

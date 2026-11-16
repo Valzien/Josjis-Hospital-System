@@ -60,6 +60,11 @@ class Patient extends Model
         return $this->hasMany(Invoice::class);
     }
 
+    public function admissions(): HasMany
+    {
+        return $this->hasMany(Admission::class);
+    }
+
     /** @param  Builder<Patient>  $query */
     #[Scope]
     protected function search(Builder $query, ?string $term): void

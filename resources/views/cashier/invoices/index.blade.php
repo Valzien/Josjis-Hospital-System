@@ -80,7 +80,7 @@
                     <div class="small fw-semibold text-truncate">{{ $invoice->patient?->name ?? '-' }}</div>
                     <div class="fs-7 text-muted-2">{{ $invoice->patient?->medical_record_number ?? '-' }}</div>
                 </td>
-                <td class="small text-truncate">{{ $invoice->queue?->doctor?->name ?? '-' }}</td>
+                <td class="small text-truncate">{{ $invoice->queue?->doctor?->name ?? $invoice->admission?->doctor?->name ?? '-' }}</td>
                 <td class="text-end small text-nowrap fw-semibold">Rp {{ number_format((float) $invoice->total, 0, ',', '.') }}</td>
                 <td class="text-end small text-nowrap">
                     <span class="text-success">Rp {{ number_format((float) $invoice->paid_amount, 0, ',', '.') }}</span>

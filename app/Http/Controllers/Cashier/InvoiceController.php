@@ -25,7 +25,7 @@ class InvoiceController extends Controller
     public function index(Request $request): View
     {
         $invoices = Invoice::query()
-            ->with(['patient', 'queue.doctor'])
+            ->with(['patient', 'queue.doctor', 'admission.doctor', 'admission.room', 'admission.bed'])
             ->when($request->filled('q'), fn ($q) => $q->search($request->string('q')->trim()->value()))
             ->when($request->filled('status'), fn ($q) => $q->status($request->string('status')->value))
             ->when($request->filled('date'), fn ($q) => $q->whereDate('created_at', $request->date('date')))
@@ -111,7 +111,7 @@ class InvoiceController extends Controller
 
     public function show(Invoice $invoice): View
     {
-        $invoice->load(['patient', 'queue.doctor', 'medicalRecord', 'items', 'payments.receivedBy', 'issuedBy']);
+        $invoice->load(['patient', 'queue.doctor', 'admission.doctor', 'admission.room', 'admission.bed', 'medicalRecord', 'items', 'payments.receivedBy', 'issuedBy']);
 
         return view('cashier.invoices.show', [
             'invoice' => $invoice,
@@ -155,7 +155,7 @@ class InvoiceController extends Controller
 
     public function receipt(Invoice $invoice): View
     {
-        $invoice->load(['patient', 'queue.doctor', 'items', 'payments.receivedBy', 'issuedBy']);
+        $invoice->load(['patient', 'queue.doctor', 'admission.doctor', 'admission.room', 'admission.bed', 'items', 'payments.receivedBy', 'issuedBy']);
 
         return view('cashier.invoices.receipt', [
             'invoice' => $invoice,

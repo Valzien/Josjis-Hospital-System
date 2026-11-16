@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
-    'code', 'patient_id', 'queue_id', 'medical_record_id', 'status', 'subtotal',
+    'code', 'patient_id', 'queue_id', 'medical_record_id', 'admission_id', 'status', 'subtotal',
     'discount', 'total', 'paid_amount', 'notes', 'issued_by', 'paid_at',
 ])]
 class Invoice extends Model
@@ -44,6 +44,11 @@ class Invoice extends Model
     public function medicalRecord(): BelongsTo
     {
         return $this->belongsTo(MedicalRecord::class);
+    }
+
+    public function admission(): BelongsTo
+    {
+        return $this->belongsTo(Admission::class);
     }
 
     public function issuedBy(): BelongsTo

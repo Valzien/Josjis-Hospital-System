@@ -67,18 +67,23 @@
     </div>
 
     <div class="row g-3 mb-3">
-        <div class="col-12 col-xl-4">
+        <div class="col-6 col-xl-3">
             <x-stat-card label="Pendapatan Diterima" :value="'Rp '.number_format($summary['revenue'], 0, ',', '.')" icon="bi-cash-stack" color="success"
                          :meta="$summary['payments'].' pembayaran'"
                          :href="route('admin.reports.show', ['report' => 'payments'] + request()->only('from', 'to', 'doctor_id'))" />
         </div>
-        <div class="col-6 col-xl-4">
+        <div class="col-6 col-xl-3">
             <x-stat-card label="Tagihan Dibuat" :value="$summary['invoices']" icon="bi-receipt" color="primary"
                          :href="route('admin.reports.show', ['report' => 'invoices'] + request()->only('from', 'to', 'doctor_id'))" />
         </div>
-        <div class="col-6 col-xl-4">
+        <div class="col-6 col-xl-3">
             <x-stat-card label="Piutang Berjalan" :value="'Rp '.number_format($summary['outstanding'], 0, ',', '.')" icon="bi-hourglass-split" color="warning"
                          :href="route('admin.reports.show', ['report' => 'invoices'] + request()->only('from', 'to', 'doctor_id'))" />
+        </div>
+        <div class="col-6 col-xl-3">
+            <x-stat-card label="Rawat Inap" :value="$summary['admissions']" icon="bi-hospital" color="teal"
+                         :meta="$summary['admissions_active'].' pasien dirawat'"
+                         :href="route('admin.reports.show', ['report' => 'admissions'] + request()->only('from', 'to', 'doctor_id'))" />
         </div>
     </div>
 
@@ -106,6 +111,7 @@
                                         'medicines' => 'bi-capsule',
                                         'invoices' => 'bi-receipt',
                                         'payments' => 'bi-cash-stack',
+                                        'admissions' => 'bi-hospital',
                                         default => 'bi-arrow-left-right',
                                     } }} text-primary"></i>
                                     <span class="small fw-semibold text-dark">{{ $label }}</span>

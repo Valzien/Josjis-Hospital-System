@@ -49,6 +49,11 @@ class Doctor extends Model
         return $this->hasMany(Prescription::class);
     }
 
+    public function admissions(): HasMany
+    {
+        return $this->hasMany(Admission::class);
+    }
+
     /** @param  Builder<Doctor>  $query */
     #[Scope]
     protected function active(Builder $query): void

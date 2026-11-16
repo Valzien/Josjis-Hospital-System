@@ -96,6 +96,12 @@ Route::middleware(['auth', 'role:admin'])
         Route::resource('services', Admin\ServiceController::class);
         Route::put('services/{service}/status', [Admin\ServiceController::class, 'toggleStatus'])->name('services.status');
 
+        Route::resource('rooms', Admin\RoomController::class);
+        Route::put('rooms/{room}/status', [Admin\RoomController::class, 'toggleStatus'])->name('rooms.status');
+        Route::post('rooms/{room}/beds', [Admin\BedController::class, 'store'])->name('rooms.beds.store');
+        Route::put('rooms/{room}/beds/{bed}', [Admin\BedController::class, 'update'])->name('rooms.beds.update');
+        Route::delete('rooms/{room}/beds/{bed}', [Admin\BedController::class, 'destroy'])->name('rooms.beds.destroy');
+
         Route::get('reports', [Admin\ReportController::class, 'index'])->name('reports.index');
         Route::get('reports/{report}', [Admin\ReportController::class, 'show'])->name('reports.show');
         Route::get('reports/{report}/export/{format}', [ReportExportController::class, 'export'])->name('reports.export');
@@ -146,6 +152,14 @@ Route::middleware(['auth', 'role:receptionist,admin'])
         Route::match(['post', 'patch'], 'appointments/{appointment}/no-show', [Reception\AppointmentController::class, 'noShow'])->name('appointments.no-show');
 
         Route::get('schedules', [Reception\ScheduleController::class, 'index'])->name('schedules.index');
+
+        Route::get('admissions', [Reception\AdmissionController::class, 'index'])->name('admissions.index');
+        Route::get('admissions/create', [Reception\AdmissionController::class, 'create'])->name('admissions.create');
+        Route::post('admissions', [Reception\AdmissionController::class, 'store'])->name('admissions.store');
+        Route::get('admissions/{admission}', [Reception\AdmissionController::class, 'show'])->name('admissions.show');
+        Route::match(['post', 'patch'], 'admissions/{admission}/transfer', [Reception\AdmissionController::class, 'transfer'])->name('admissions.transfer');
+        Route::match(['post', 'patch'], 'admissions/{admission}/discharge', [Reception\AdmissionController::class, 'discharge'])->name('admissions.discharge');
+        Route::match(['post', 'patch'], 'admissions/{admission}/cancel', [Reception\AdmissionController::class, 'cancel'])->name('admissions.cancel');
     });
 
 /*
@@ -181,6 +195,11 @@ Route::middleware(['auth', 'role:doctor,admin'])
         Route::get('prescriptions/{prescription}/print', [Doctor\PrescriptionController::class, 'print'])->name('prescriptions.print');
 
         Route::get('schedules', [Doctor\ScheduleController::class, 'index'])->name('schedules.index');
+
+        Route::get('admissions', [Doctor\AdmissionController::class, 'index'])->name('admissions.index');
+        Route::get('admissions/{admission}', [Doctor\AdmissionController::class, 'show'])->name('admissions.show');
+        Route::post('admissions/{admission}/visits', [Doctor\AdmissionController::class, 'visit'])->name('admissions.visit');
+        Route::post('admissions/{admission}/charges', [Doctor\AdmissionController::class, 'charge'])->name('admissions.charge');
     });
 
 /*

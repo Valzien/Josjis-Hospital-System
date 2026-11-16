@@ -43,11 +43,25 @@
                     </div>
                     <div class="col-sm-6">
                         <div class="text-muted-2 fs-7">Dokter</div>
-                        <div class="fw-semibold">{{ $invoice->queue?->doctor?->name ?? '-' }}</div>
+                        <div class="fw-semibold">{{ $invoice->queue?->doctor?->name ?? $invoice->admission?->doctor?->name ?? '-' }}</div>
                     </div>
                     <div class="col-sm-6">
-                        <div class="text-muted-2 fs-7">No. Antrean</div>
-                        <div class="fw-semibold">{{ $invoice->queue?->queue_number ?? '-' }}</div>
+                        <div class="text-muted-2 fs-7">{{ $invoice->admission ? 'Rawat Inap' : 'No. Antrean' }}</div>
+                        <div class="fw-semibold">
+                            @if ($invoice->admission)
+                                {{ $invoice->admission->code }}
+                                @if ($invoice->admission->room)
+                                    <span class="fs-7 text-muted-2">
+                                        &middot; {{ $invoice->admission->room->name }}
+                                        @if ($invoice->admission->bed)
+                                            / {{ $invoice->admission->bed->code }}
+                                        @endif
+                                    </span>
+                                @endif
+                            @else
+                                {{ $invoice->queue?->queue_number ?? '-' }}
+                            @endif
+                        </div>
                     </div>
                     <div class="col-sm-6">
                         <div class="text-muted-2 fs-7">Dibuat Oleh</div>
@@ -85,6 +99,8 @@
                                         @php($badge = match ($item->type) {
                                             'consultation' => ['jhs-badge-primary', 'bi-stethoscope', 'Konsultasi'],
                                             'service' => ['jhs-badge-warning', 'bi-tags', 'Tindakan'],
+                                            'room' => ['jhs-badge-primary', 'bi-door-closed', 'Kamar'],
+                                            'other' => ['jhs-badge-secondary', 'bi-three-dots', 'Lainnya'],
                                             default => ['jhs-badge-info', 'bi-capsule', 'Obat'],
                                         })
                                         <span class="jhs-badge {{ $badge[0] }} mt-1">

@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Enums\InvoiceStatus;
 use App\Enums\PaymentMethod;
 use App\Enums\PrescriptionStatus;
+use App\Models\Admission;
+use App\Models\AdmissionCharge;
 use App\Models\Invoice;
 use App\Models\MedicalRecord;
 use App\Models\Payment;
@@ -16,9 +18,10 @@ use RuntimeException;
 /**
  * Logika tagihan & kasir.
  *
- * Satu kunjungan (antrean dengan rekam medis) menghasilkan satu invoice berisi
- * biaya konsultasi, tindakan/tarif yang dipilih dokter, dan rincian obat dari resep.
- * Pembayaran boleh dicicil; status invoice mengikuti total pembayaran yang masuk.
+ * Satu kunjungan (antrean dengan rekam medis) atau satu rawat inap menghasilkan
+ * satu invoice. Rincian rawat inap berasal dari akumulasi biaya kamar, tindakan,
+ * dan biaya lain yang dicatat selama perawatan. Pembayaran boleh dicicil;
+ * status invoice mengikuti total pembayaran yang masuk.
  */
 class BillingService
 {
@@ -135,6 +138,79 @@ class BillingService
             }
 
             return $invoice->load(['items', 'patient', 'queue.doctor', 'medicalRecord']);
+        });
+    }
+
+    /**
+     * Rincian tagihan rawat inap (belum disimpan).
+     *
+     * @return array{items: array<int, array<string, mixed>>, subtotal: float}
+     */
+    public function previewForAdmission(Admission $admission): array
+    {
+        $admission->load(['charges', 'patient', 'doctor', 'room', 'bed']);
+
+        $items = $admission->charges
+            ->map(fn (AdmissionCharge $charge) => [
+                'type' => $charge->type?->invoiceItemType() ?? 'other',
+                'description' => $charge->description,
+                'quantity' => (int) $charge->quantity,
+                'unit_price' => (float) $charge->unit_price,
+                'subtotal' => (float) $charge->subtotal,
+                'reference_type' => $charge::class,
+                'reference_id' => $charge->id,
+            ])
+            ->all();
+
+        return [
+            'items' => $items,
+            'subtotal' => (float) array_sum(array_column($items, 'subtotal')),
+        ];
+    }
+
+    /**
+     * @throws RuntimeException
+     */
+    public function createForAdmission(Admission $admission, float $discount = 0, ?string $notes = null, ?int $issuedBy = null): Invoice
+    {
+        $preview = $this->previewForAdmission($admission);
+
+        if ($preview['items'] === []) {
+            throw new RuntimeException('Tidak ada rincian biaya rawat inap yang dapat ditagih.');
+        }
+
+        $existing = Invoice::query()->where('admission_id', $admission->id)->first();
+
+        if ($existing !== null) {
+            throw new RuntimeException("Rawat inap ini sudah memiliki tagihan {$existing->code}.");
+        }
+
+        $subtotal = $preview['subtotal'];
+        $discount = max(0, min($discount, $subtotal));
+        $total = $subtotal - $discount;
+
+        return DB::transaction(function () use ($admission, $preview, $discount, $subtotal, $total, $notes, $issuedBy) {
+            $invoice = Invoice::create([
+                'code' => $this->numbers->invoiceCode(),
+                'patient_id' => $admission->patient_id,
+                'queue_id' => null,
+                'medical_record_id' => null,
+                'admission_id' => $admission->id,
+                'status' => $total <= 0 ? InvoiceStatus::Paid : InvoiceStatus::Unpaid,
+                'subtotal' => $subtotal,
+                'discount' => $discount,
+                'total' => $total,
+                'paid_amount' => 0,
+                'notes' => $notes,
+                'issued_by' => $issuedBy,
+                'paid_at' => $total <= 0 ? now() : null,
+            ]);
+
+            foreach ($preview['items'] as $item) {
+                $invoice->items()->create($item);
+            }
+
+            return $invoice->load(['items', 'patient', 'admission']);
         });
     }
 

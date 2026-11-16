@@ -201,6 +201,7 @@ return [
             ['label' => 'Pasien', 'route' => 'admin.patients.index', 'icon' => 'bi-person-vcard'],
             ['label' => 'Jadwal Dokter', 'route' => 'admin.schedules.index', 'icon' => 'bi-calendar-week'],
             ['label' => 'Tarif & Tindakan', 'route' => 'admin.services.index', 'icon' => 'bi-tags'],
+            ['label' => 'Kamar & Rawat Inap', 'route' => 'admin.rooms.index', 'icon' => 'bi-hospital'],
             ['section' => 'Monitoring', 'label' => 'Laporan', 'route' => 'admin.reports.index', 'icon' => 'bi-graph-up-arrow'],
             ['label' => 'Tagihan & Kasir', 'route' => 'cashier.invoices.index', 'icon' => 'bi-cash-coin'],
             ['label' => 'Audit Log', 'route' => 'admin.audit-logs.index', 'icon' => 'bi-shield-check'],
@@ -213,6 +214,7 @@ return [
             ['label' => 'Antrean', 'route' => 'reception.queues.index', 'icon' => 'bi-list-ol', 'badge' => 'waiting'],
             ['label' => 'Papan Antrean', 'route' => 'reception.queues.board', 'icon' => 'bi-display'],
             ['label' => 'Janji Temu', 'route' => 'reception.appointments.index', 'icon' => 'bi-calendar-check', 'badge' => 'appointments'],
+            ['label' => 'Rawat Inap', 'route' => 'reception.admissions.index', 'icon' => 'bi-hospital', 'badge' => 'admissions'],
             ['label' => 'Jadwal Dokter', 'route' => 'reception.schedules.index', 'icon' => 'bi-calendar-week'],
         ],
         UserRole::Doctor->value => [
@@ -220,6 +222,7 @@ return [
             ['section' => 'Pelayanan', 'label' => 'Antrean Saya', 'route' => 'doctor.queues.index', 'icon' => 'bi-list-ol', 'badge' => 'waiting'],
             ['label' => 'Pasien', 'route' => 'doctor.patients.index', 'icon' => 'bi-people'],
             ['section' => 'Klinis', 'label' => 'Pemeriksaan', 'route' => 'doctor.examinations.index', 'icon' => 'bi-clipboard2-pulse'],
+            ['label' => 'Pasien Rawat Inap', 'route' => 'doctor.admissions.index', 'icon' => 'bi-hospital', 'badge' => 'admissions'],
             ['label' => 'Rekam Medis', 'route' => 'doctor.medical-records.index', 'icon' => 'bi-journal-medical'],
             ['label' => 'Resep', 'route' => 'doctor.prescriptions.index', 'icon' => 'bi-file-earmark-medical'],
             ['section' => 'Jadwal', 'label' => 'Jadwal Praktik', 'route' => 'doctor.schedules.index', 'icon' => 'bi-calendar-week'],

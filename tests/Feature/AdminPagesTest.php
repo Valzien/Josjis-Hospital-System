@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\AuditLog;
 use App\Models\Pharmacist;
 use App\Models\Receptionist;
+use App\Models\Room;
 use App\Models\Service;
 use App\Models\User;
 use App\Services\ReportService;
@@ -31,6 +32,8 @@ class AdminPagesTest extends SmokeTestCase
             route('admin.schedules.index'),
             route('admin.services.index'),
             route('admin.services.create'),
+            route('admin.rooms.index'),
+            route('admin.rooms.create'),
             route('admin.reports.index'),
             route('admin.audit-logs.index'),
             route('admin.settings.index'),
@@ -43,8 +46,11 @@ class AdminPagesTest extends SmokeTestCase
         $this->actingAs($admin);
 
         $data = $this->seedScenario();
+        $room = Room::factory()->create();
 
         $this->assertPagesRender([
+            route('admin.rooms.show', $room),
+            route('admin.rooms.edit', $room),
             route('admin.doctors.show', $data['doctor']),
             route('admin.doctors.edit', $data['doctor']),
             route('admin.pharmacists.edit', Pharmacist::factory()->create()),

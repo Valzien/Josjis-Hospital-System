@@ -3,13 +3,17 @@
 namespace Database\Seeders;
 
 use App\Enums\ActiveStatus;
+use App\Enums\BedStatus;
 use App\Enums\Day;
+use App\Enums\RoomClass;
+use App\Models\Bed;
 use App\Models\Doctor;
 use App\Models\DoctorSchedule;
 use App\Models\Medicine;
 use App\Models\Patient;
 use App\Models\Pharmacist;
 use App\Models\Receptionist;
+use App\Models\Room;
 use App\Models\Service;
 use App\Models\User;
 use App\Services\NumberGenerator;
@@ -37,6 +41,7 @@ class DemoSeeder extends Seeder
             $this->seedSchedules();
             $this->seedMedicines();
             $this->seedServices();
+            $this->seedRooms();
             $this->seedPatients();
         });
     }
@@ -207,6 +212,40 @@ class DemoSeeder extends Seeder
                     'status' => ActiveStatus::Active->value,
                 ],
             );
+        }
+    }
+
+    /* ---------------------------------------------------- Kamar & Ranap */
+
+    private function seedRooms(): void
+    {
+        $rooms = [
+            ['R-VIP1', 'Melati VIP', RoomClass::Vip, '3', 750000, 2, 'Kamar VIP dengan satu tempat tidur dan sofa.'],
+            ['R-K1A', 'Anggrek 1A', RoomClass::Class1, '2', 450000, 2, 'Kelas 1 dengan kamar mandi dalam.'],
+            ['R-K2A', 'Anggrek 2A', RoomClass::Class2, '2', 275000, 3, 'Kelas 2 berisi dua tempat tidur.'],
+            ['R-K3A', 'Anggrek 3A', RoomClass::Class3, '1', 150000, 4, 'Kelas 3 untuk perawatan umum.'],
+            ['R-ICU1', 'ICU Utama', RoomClass::Icu, '1', 1250000, 2, 'Ruang intensive care dengan monitoring.'],
+        ];
+
+        foreach ($rooms as [$code, $name, $class, $floor, $rate, $bedCount, $notes]) {
+            $room = Room::updateOrCreate(
+                ['code' => $code],
+                [
+                    'name' => $name,
+                    'class' => $class->value,
+                    'floor' => $floor,
+                    'rate_per_day' => $rate,
+                    'status' => ActiveStatus::Active->value,
+                    'notes' => $notes,
+                ],
+            );
+
+            for ($i = 1; $i <= $bedCount; $i++) {
+                Bed::updateOrCreate(
+                    ['room_id' => $room->id, 'code' => chr(64 + $i)],
+                    ['status' => BedStatus::Available->value],
+                );
+            }
         }
     }
 

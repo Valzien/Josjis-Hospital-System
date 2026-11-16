@@ -56,7 +56,7 @@
                 <input type="date" name="to" id="to" value="{{ $filters['to'] }}" class="form-control form-control-sm">
             </div>
 
-            @if (in_array($report, ['queues', 'examinations', 'prescriptions', 'invoices', 'payments'], true))
+            @if (in_array($report, ['queues', 'examinations', 'prescriptions', 'invoices', 'payments', 'admissions'], true))
                 <div class="col-lg-3">
                     <label class="form-label small mb-1" for="doctor_id">Dokter</label>
                     <select name="doctor_id" id="doctor_id" class="form-select form-select-sm">
@@ -99,6 +99,18 @@
                         <option value="">Semua Metode</option>
                         @foreach (\App\Enums\PaymentMethod::options() as $value => $label)
                             <option value="{{ $value }}" @selected(($filters['method'] ?? '') === $value)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            @endif
+
+            @if ($report === 'admissions')
+                <div class="col-lg-2">
+                    <label class="form-label small mb-1" for="status">Status Rawat Inap</label>
+                    <select name="status" id="status" class="form-select form-select-sm">
+                        <option value="">Semua Status</option>
+                        @foreach (\App\Enums\AdmissionStatus::options() as $value => $label)
+                            <option value="{{ $value }}" @selected(($filters['status'] ?? '') === $value)>{{ $label }}</option>
                         @endforeach
                     </select>
                 </div>

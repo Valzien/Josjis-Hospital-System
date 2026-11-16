@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\QueueStatus;
+use App\Models\Admission;
 use App\Models\Doctor;
 use App\Models\DoctorSchedule;
 use App\Models\MedicalRecord;
@@ -54,8 +55,15 @@ class DoctorPagesTest extends SmokeTestCase
 
         PrescriptionDetail::factory()->create(['prescription_id' => $prescription->id]);
 
+        $admission = Admission::factory()->create([
+            'patient_id' => $patient->id,
+            'doctor_id' => $doctor->id,
+        ]);
+
         $this->assertPagesRender([
             route('doctor.dashboard'),
+            route('doctor.admissions.index'),
+            route('doctor.admissions.show', $admission),
             route('doctor.queues.index'),
             route('doctor.queues.show', $queue),
             route('doctor.schedules.index'),

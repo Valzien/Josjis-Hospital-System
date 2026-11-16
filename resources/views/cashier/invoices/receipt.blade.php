@@ -56,8 +56,23 @@
     <table>
         <tr><th style="width: 140px;">Nama</th><td>{{ $invoice->patient?->name ?? '-' }}</td></tr>
         <tr><th>No. Rekam Medis</th><td>{{ $invoice->patient?->medical_record_number ?? '-' }}</td></tr>
-        <tr><th>Dokter</th><td>{{ $invoice->queue?->doctor?->name ?? '-' }}</td></tr>
-        <tr><th>No. Antrean</th><td>{{ $invoice->queue?->queue_number ?? '-' }}</td></tr>
+        <tr><th>Dokter</th><td>{{ $invoice->queue?->doctor?->name ?? $invoice->admission?->doctor?->name ?? '-' }}</td></tr>
+        @if ($invoice->admission)
+            <tr>
+                <th>Rawat Inap</th>
+                <td>
+                    {{ $invoice->admission->code }}
+                    @if ($invoice->admission->room)
+                        &middot; {{ $invoice->admission->room->name }}
+                        @if ($invoice->admission->bed)
+                            / {{ $invoice->admission->bed->code }}
+                        @endif
+                    @endif
+                </td>
+            </tr>
+        @else
+            <tr><th>No. Antrean</th><td>{{ $invoice->queue?->queue_number ?? '-' }}</td></tr>
+        @endif
     </table>
 
     <h2>Rincian Biaya</h2>

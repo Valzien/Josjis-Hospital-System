@@ -2,10 +2,12 @@
 
 namespace App\Providers;
 
+use App\Enums\AdmissionStatus;
 use App\Enums\AppointmentStatus;
 use App\Enums\InvoiceStatus;
 use App\Enums\PrescriptionStatus;
 use App\Enums\QueueStatus;
+use App\Models\Admission;
 use App\Models\Appointment;
 use App\Models\DoctorSchedule;
 use App\Models\Invoice;
@@ -96,6 +98,14 @@ class AppServiceProvider extends ServiceProvider
                 'appointments' => $user->isReceptionist()
                     ? Appointment::query()->onDate($today)->status(AppointmentStatus::Booked)->count()
                     : 0,
+                'admissions' => $user->isDoctor()
+                    ? Admission::query()
+                        ->where('status', AdmissionStatus::Active->value)
+                        ->where('doctor_id', $user->doctor?->id)
+                        ->count()
+                    : ($user->isReceptionist() || $user->isAdmin()
+                        ? Admission::query()->where('status', AdmissionStatus::Active->value)->count()
+                        : 0),
             ];
         });
     }

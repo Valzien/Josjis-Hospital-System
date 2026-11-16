@@ -2,9 +2,12 @@
 
 namespace App\Services;
 
+use App\Enums\AdmissionStatus;
 use App\Enums\InvoiceStatus;
 use App\Enums\QueueStatus;
 use App\Enums\TransactionType;
+use App\Models\Admission;
+use App\Models\AdmissionCharge;
 use App\Models\Doctor;
 use App\Models\Invoice;
 use App\Models\MedicalRecord;
@@ -40,6 +43,7 @@ class ReportService
             'transactions' => 'Laporan Transaksi Obat',
             'invoices' => 'Laporan Tagihan',
             'payments' => 'Laporan Pembayaran',
+            'admissions' => 'Laporan Rawat Inap',
         ];
     }
 
@@ -65,6 +69,7 @@ class ReportService
             'transactions' => ['Waktu', 'Kode', 'Obat', 'Tipe', 'Jumlah', 'Stok Sebelum', 'Stok Sesudah', 'Referensi', 'Petugas'],
             'invoices' => ['Kode', 'Tanggal', 'Pasien', 'Dokter', 'Status', 'Subtotal', 'Potongan', 'Total', 'Dibayar', 'Sisa'],
             'payments' => ['Kode', 'Waktu', 'Tagihan', 'Pasien', 'Metode', 'Nominal', 'Kasir'],
+            'admissions' => ['Kode', 'Masuk', 'Pasien', 'Dokter', 'Kamar', 'Tempat Tidur', 'Status', 'Lama Inap', 'Pulang', 'Total Biaya'],
             default => [],
         };
     }
@@ -92,6 +97,8 @@ class ReportService
                 ->whereIn('status', InvoiceStatus::openValues())
                 ->whereBetween('created_at', [$from, $to.' 23:59:59'])
                 ->sum(DB::raw('total - paid_amount')),
+            'admissions' => Admission::query()->whereBetween('admitted_at', [$from, $to.' 23:59:59'])->count(),
+            'admissions_active' => Admission::query()->where('status', AdmissionStatus::Active->value)->count(),
         ];
     }
 
@@ -110,6 +117,7 @@ class ReportService
             'transactions' => $this->transactionRows($filters),
             'invoices' => $this->invoiceRows($filters),
             'payments' => $this->paymentRows($filters),
+            'admissions' => $this->admissionRows($filters),
             default => [],
         };
     }
@@ -253,20 +261,42 @@ class ReportService
     private function invoiceRows(array $filters): array
     {
         return $this->invoiceQuery($filters)
-            ->with(['patient', 'queue.doctor'])
+            ->with(['patient', 'queue.doctor', 'admission.doctor'])
             ->orderBy('created_at')
             ->get()
             ->map(fn (Invoice $invoice) => [
                 $invoice->code,
                 $invoice->created_at->format('d/m/Y H:i'),
                 $invoice->patient?->name ?? '-',
-                $invoice->queue?->doctor?->name ?? '-',
+                $invoice->queue?->doctor?->name ?? $invoice->admission?->doctor?->name ?? '-',
                 $invoice->statusLabel(),
                 $this->rupiah((float) $invoice->subtotal),
                 $this->rupiah((float) $invoice->discount),
                 $this->rupiah((float) $invoice->total),
                 $this->rupiah((float) $invoice->paid_amount),
                 $this->rupiah($invoice->remainingAmount()),
+            ])->all();
+    }
+
+    /** @return array<int, array<string, mixed>> */
+    private function admissionRows(array $filters): array
+    {
+        return $this->admissionQuery($filters)
+            ->with(['patient', 'doctor', 'room', 'bed'])
+            ->withSum('charges as charges_total', 'subtotal')
+            ->orderBy('admitted_at')
+            ->get()
+            ->map(fn (Admission $admission) => [
+                $admission->code,
+                $admission->admitted_at?->format('d/m/Y H:i') ?? '-',
+                $admission->patient?->name ?? '-',
+                $admission->doctor?->name ?? '-',
+                $admission->room?->name ?? '-',
+                $admission->bed?->code ?? '-',
+                $admission->statusLabel(),
+                $admission->dayCount().' hari',
+                $admission->discharged_at?->format('d/m/Y H:i') ?? '-',
+                $this->rupiah((float) ($admission->charges_total ?? 0)),
             ])->all();
     }
 
@@ -297,7 +327,10 @@ class ReportService
         return Invoice::query()
             ->whereBetween('created_at', [$filters['from'], $filters['to'].' 23:59:59'])
             ->when($filters['patient_id'] ?? null, fn ($q) => $q->where('patient_id', $filters['patient_id']))
-            ->when($filters['doctor_id'] ?? null, fn ($q) => $q->whereHas('queue', fn ($qq) => $qq->where('doctor_id', $filters['doctor_id'])))
+            ->when($filters['doctor_id'] ?? null, fn ($q) => $q->where(function (Builder $qq) use ($filters) {
+                $qq->whereHas('queue', fn (Builder $queue) => $queue->where('doctor_id', $filters['doctor_id']))
+                    ->orWhereHas('admission', fn (Builder $admission) => $admission->where('doctor_id', $filters['doctor_id']));
+            }))
             ->when($filters['status'] ?? null, fn ($q) => $q->status($filters['status']))
             ->when($filters['q'] ?? null, fn ($q) => $q->search($filters['q']));
     }
@@ -312,12 +345,29 @@ class ReportService
             ->whereBetween('paid_at', [$filters['from'], $filters['to'].' 23:59:59'])
             ->when($filters['method'] ?? null, fn ($q) => $q->where('method', $filters['method']))
             ->when($filters['patient_id'] ?? null, fn ($q) => $q->whereHas('invoice', fn ($i) => $i->where('patient_id', $filters['patient_id'])))
-            ->when($filters['doctor_id'] ?? null, fn ($q) => $q->whereHas('invoice.queue', fn ($qq) => $qq->where('doctor_id', $filters['doctor_id'])))
+            ->when($filters['doctor_id'] ?? null, fn ($q) => $q->whereHas('invoice', fn (Builder $i) => $i->where(function (Builder $ii) use ($filters) {
+                $ii->whereHas('queue', fn (Builder $queue) => $queue->where('doctor_id', $filters['doctor_id']))
+                    ->orWhereHas('admission', fn (Builder $admission) => $admission->where('doctor_id', $filters['doctor_id']));
+            })))
             ->when($filters['q'] ?? null, fn ($q) => $q->where(function (Builder $qq) use ($filters) {
                 $like = '%'.str_replace(['%', '_'], ['\%', '\_'], $filters['q']).'%';
                 $qq->where('code', 'like', $like)
                     ->orWhereHas('invoice', fn (Builder $i) => $i->search($filters['q']));
             }));
+    }
+
+    /**
+     * @param  array<string, mixed>  $filters
+     * @return Builder<Admission>
+     */
+    private function admissionQuery(array $filters): Builder
+    {
+        return Admission::query()
+            ->whereBetween('admitted_at', [$filters['from'], $filters['to'].' 23:59:59'])
+            ->when($filters['patient_id'] ?? null, fn ($q) => $q->where('patient_id', $filters['patient_id']))
+            ->when($filters['doctor_id'] ?? null, fn ($q) => $q->where('doctor_id', $filters['doctor_id']))
+            ->when($filters['status'] ?? null, fn ($q) => $q->where('status', $filters['status']))
+            ->when($filters['q'] ?? null, fn ($q) => $q->search($filters['q']));
     }
 
     private function rupiah(float $value): string
@@ -371,6 +421,20 @@ class ReportService
                 'total_pembayaran' => count($rows),
                 'total_pendapatan' => $this->rupiah((float) $this->paymentQuery($filters)->sum('amount')),
             ],
+            'admissions' => [
+                'total_rawat_inap' => count($rows),
+                'total_dirawat' => Admission::query()
+                    ->whereBetween('admitted_at', [$filters['from'], $filters['to'].' 23:59:59'])
+                    ->where('status', AdmissionStatus::Active->value)
+                    ->count(),
+                'total_pulang' => Admission::query()
+                    ->whereBetween('admitted_at', [$filters['from'], $filters['to'].' 23:59:59'])
+                    ->where('status', AdmissionStatus::Discharged->value)
+                    ->count(),
+                'total_biaya' => $this->rupiah((float) AdmissionCharge::query()
+                    ->whereIn('admission_id', $this->admissionQuery($filters)->select('id'))
+                    ->sum('subtotal')),
+            ],
             default => [
                 'total_data' => count($rows),
             ],
@@ -412,6 +476,11 @@ class ReportService
             ],
             'invoices' => [$this->invoiceQuery($filters), 'created_at', 'count(*)'],
             'payments' => [$this->paymentQuery($filters), 'paid_at', 'sum(amount)'],
+            'admissions' => [
+                Admission::query()->when($filters['doctor_id'], fn ($q) => $q->where('admissions.doctor_id', $filters['doctor_id'])),
+                'admitted_at',
+                'count(*)',
+            ],
             default => [null, null, null],
         };
 

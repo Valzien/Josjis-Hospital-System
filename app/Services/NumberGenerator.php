@@ -49,6 +49,11 @@ class NumberGenerator
         return $this->next('PAY');
     }
 
+    public function admissionCode(): string
+    {
+        return $this->next('ADM');
+    }
+
     public function patientNumberPreview(): string
     {
         return $this->peek('P');
@@ -62,6 +67,11 @@ class NumberGenerator
     public function prescriptionPreview(): string
     {
         return $this->peek('RS');
+    }
+
+    public function admissionCodePreview(): string
+    {
+        return $this->peek('ADM');
     }
 
     /** Nomor berikutnya tanpa menyimpan, untuk preview di form. */

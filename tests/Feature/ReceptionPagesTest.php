@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\QueueStatus;
+use App\Models\Admission;
 use App\Models\Queue;
 use App\Models\User;
 
@@ -14,8 +15,16 @@ class ReceptionPagesTest extends SmokeTestCase
 
         $data = $this->seedScenario();
 
+        $admission = Admission::factory()->create([
+            'patient_id' => $data['patient']->id,
+            'doctor_id' => $data['doctor']->id,
+        ]);
+
         $this->assertPagesRender([
             route('reception.dashboard'),
+            route('reception.admissions.index'),
+            route('reception.admissions.create'),
+            route('reception.admissions.show', $admission),
             route('reception.queues.index'),
             route('reception.queues.board'),
             route('reception.queues.create'),

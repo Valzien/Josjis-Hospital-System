@@ -10,12 +10,12 @@
             <i class="bi bi-exclamation-triangle me-1"></i>
             <strong>Lengkapi profil Anda.</strong>
             Data berikut masih kosong: {{ implode(', ', $missing) }}.
-            Profil yang lengkap wajib untuk dapat mengambil antrean.
+            Profil yang lengkap wajib untuk dapat mendaftar berobat.
         </div>
     @else
         <div class="alert alert-success">
             <i class="bi bi-check-circle me-1"></i>
-            Profil Anda sudah lengkap. Anda dapat mengambil antrean kapan saja.
+            Profil Anda sudah lengkap. Anda dapat mendaftar berobat kapan saja.
         </div>
     @endif
 

@@ -4,16 +4,12 @@ namespace App\Http\Controllers\Patient;
 
 use App\Enums\QueueStatus;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Patient\TakeQueueRequest;
-use App\Models\Doctor;
-use App\Models\DoctorSchedule;
 use App\Models\Queue;
 use App\Services\AuditLogger;
 use App\Services\QueueService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
-use RuntimeException;
 
 class QueueController extends Controller
 {
@@ -38,68 +34,6 @@ class QueueController extends Controller
             'filters' => $request->only('status'),
             'activeQueue' => auth()->user()->patient->queues()->onDate(now())->open()->latest('id')->first(),
         ]);
-    }
-
-    public function create(Request $request): View
-    {
-        $patient = auth()->user()->patient;
-
-        $doctorId = $request->integer('doctor_id') ?: null;
-
-        $schedules = DoctorSchedule::query()
-            ->with('doctor')
-            ->active()
-            ->when($doctorId, fn ($q) => $q->where('doctor_id', $doctorId))
-            ->orderBy('day')
-            ->orderBy('start_time')
-            ->get()
-            ->filter(fn (DoctorSchedule $s) => $s->day?->value === now()->dayOfWeek)
-            ->values();
-
-        return view('patient.queue.create', [
-            'doctors' => Doctor::query()
-                ->active()
-                ->whereHas('schedules', fn ($q) => $q->active()->forDay(now()))
-                ->withCount(['schedules' => fn ($q) => $q->active()->forDay(now())])
-                ->orderBy('name')
-                ->get(),
-            'schedules' => $schedules,
-            'selectedDoctor' => $doctorId,
-            'isProfileComplete' => $patient->isProfileComplete(),
-            'missingFields' => array_values(array_filter([
-                blank($patient->birth_date) ? 'tanggal lahir' : null,
-                blank($patient->phone) ? 'nomor telepon' : null,
-                blank($patient->address) ? 'alamat' : null,
-            ])),
-            'existingQueue' => $patient->queues()->onDate(now())->open()->latest('id')->first(),
-        ]);
-    }
-
-    public function store(TakeQueueRequest $request): RedirectResponse
-    {
-        $patient = auth()->user()->patient;
-
-        if (! $patient->isProfileComplete()) {
-            return back()->withInput()->with('error', 'Lengkapi data profil Anda sebelum mengambil antrean.');
-        }
-
-        $schedule = DoctorSchedule::query()->with('doctor')->findOrFail($request->integer('doctor_schedule_id'));
-
-        if (! $schedule->isToday()) {
-            return back()->with('error', "Jadwal ini berlaku pada hari {$schedule->dayLabel()}, bukan hari ini.");
-        }
-
-        try {
-            $this->queues->assertScheduleAcceptsQueue($schedule);
-            $queue = $this->queues->takeQueue($patient, $schedule, $request->input('complaint_note'), $patient->user_id);
-        } catch (RuntimeException $e) {
-            return back()->withInput()->with('error', $e->getMessage());
-        }
-
-        $this->audit->created('queue', 'Queue', $queue->id, "Pasien {$patient->name} mengambil antrean {$queue->queue_number} pada {$schedule->doctor->name}.");
-
-        return redirect()->route('patient.queue.show', $queue)
-            ->with('success', "Berhasil! Nomor antrean Anda adalah {$queue->queue_number}.");
     }
 
     public function show(Queue $queue): View

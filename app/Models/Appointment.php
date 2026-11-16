@@ -14,7 +14,7 @@ use Illuminate\Support\Carbon;
 
 #[Fillable([
     'code', 'patient_id', 'doctor_id', 'doctor_schedule_id', 'appointment_date',
-    'appointment_time', 'status', 'complaint_note', 'queue_id', 'created_by',
+    'appointment_time', 'slot_key', 'status', 'complaint_note', 'queue_id', 'created_by',
     'checked_in_at', 'cancelled_at',
 ])]
 class Appointment extends Model

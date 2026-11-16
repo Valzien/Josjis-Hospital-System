@@ -253,12 +253,11 @@ Route::middleware(['auth', 'role:patient'])
         Route::get('schedules', [Patient\ScheduleController::class, 'index'])->name('schedules.index');
 
         Route::get('queue', [Patient\QueueController::class, 'index'])->name('queue.index');
-        Route::get('queue/create', [Patient\QueueController::class, 'create'])->name('queue.create');
-        Route::post('queue', [Patient\QueueController::class, 'store'])->name('queue.store');
         Route::get('queue/{queue}', [Patient\QueueController::class, 'show'])->name('queue.show');
         Route::get('queue/{queue}/ticket', [Patient\QueueController::class, 'ticket'])->name('queue.ticket');
         Route::match(['post', 'patch'], 'queue/{queue}/cancel', [Patient\QueueController::class, 'cancel'])->name('queue.cancel');
 
+        // Satu pintu pendaftaran: tanggal hari ini → antrean, tanggal ke depan → janji temu.
         Route::get('appointments', [Patient\AppointmentController::class, 'index'])->name('appointments.index');
         Route::get('appointments/create', [Patient\AppointmentController::class, 'create'])->name('appointments.create');
         Route::post('appointments', [Patient\AppointmentController::class, 'store'])->name('appointments.store');

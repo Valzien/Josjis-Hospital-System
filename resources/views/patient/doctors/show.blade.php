@@ -8,8 +8,8 @@
             <a href="{{ route('patient.doctors.index') }}" class="btn btn-light border btn-sm">
                 <i class="bi bi-arrow-left me-1"></i>Daftar Dokter
             </a>
-            <a href="{{ route('patient.queue.create', ['doctor_id' => $doctor->id]) }}" class="btn btn-primary btn-sm">
-                <i class="bi bi-ticket-perforated me-1"></i>Ambil Antrean
+            <a href="{{ route('patient.appointments.create', ['doctor_id' => $doctor->id]) }}" class="btn btn-primary btn-sm">
+                <i class="bi bi-ticket-perforated me-1"></i>Daftar Berobat
             </a>
         </x-slot:actions>
     </x-page-header>
@@ -76,8 +76,8 @@
                                              :icon="$schedule->isOpen() ? 'bi-unlock' : 'bi-lock'"
                                              :color="$schedule->isOpen() ? 'success' : 'secondary'" />
                                     @if ($schedule->isToday())
-                                        <a href="{{ route('patient.queue.create', ['doctor_id' => $doctor->id]) }}"
-                                           class="btn btn-sm btn-primary">Ambil Antrean</a>
+                                        <a href="{{ route('patient.appointments.create', ['doctor_id' => $doctor->id]) }}"
+                                           class="btn btn-sm btn-primary">Daftar Berobat</a>
                                     @endif
                                 </div>
                             </div>

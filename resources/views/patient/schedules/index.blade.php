@@ -8,8 +8,8 @@
             <a href="{{ route('patient.doctors.index') }}" class="btn btn-light border btn-sm">
                 <i class="bi bi-heart-pulse me-1"></i>Daftar Dokter
             </a>
-            <a href="{{ route('patient.queue.create') }}" class="btn btn-primary btn-sm">
-                <i class="bi bi-ticket-perforated me-1"></i>Ambil Antrean
+            <a href="{{ route('patient.appointments.create') }}" class="btn btn-primary btn-sm">
+                <i class="bi bi-ticket-perforated me-1"></i>Daftar Berobat
             </a>
         </x-slot:actions>
     </x-page-header>
@@ -109,7 +109,7 @@
                                                          icon="bi-people" color="secondary" />
                                             @endif
                                             @if ($schedule->isToday() && $remaining > 0)
-                                                <a href="{{ route('patient.queue.create', ['doctor_id' => $schedule->doctor_id]) }}"
+                                                <a href="{{ route('patient.appointments.create', ['doctor_id' => $schedule->doctor_id]) }}"
                                                    class="btn btn-sm btn-primary">Ambil</a>
                                             @elseif ($remaining > 0)
                                                 <x-badge :text="'Sisa '.$remaining" icon="bi-check-circle-fill" color="info" />

@@ -6,8 +6,8 @@
     <x-page-header title="Antrean Saya" description="Riwayat antrean yang pernah Anda ambil beserta statusnya." icon="bi-list-ol">
         <x-slot:actions>
             @unless ($activeQueue)
-                <a href="{{ route('patient.queue.create') }}" class="btn btn-primary btn-sm">
-                    <i class="bi bi-plus-lg me-1"></i>Ambil Antrean
+                <a href="{{ route('patient.appointments.create') }}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-plus-lg me-1"></i>Daftar Berobat
                 </a>
             @endunless
         </x-slot:actions>
@@ -51,7 +51,7 @@
         ['label' => 'Dokter', 'key' => 'doctor'],
         ['label' => 'Status', 'key' => 'status'],
     ]" empty-title="Belum ada antrean" empty-icon="bi-list-ol"
-       empty-text="Ambil antrean pertama Anda untuk konsultasi.">
+       empty-text="Daftar berobat untuk mendapatkan antrean pertama Anda.">
         @forelse ($queues as $queue)
             <tr onclick="window.location.href='{{ route('patient.queue.show', $queue) }}'">
                 <td><span class="jhs-queue-number">{{ $queue->queue_number }}</span></td>
@@ -66,7 +66,7 @@
             <tr>
                 <td colspan="4">
                     <x-empty-state icon="bi-list-ol" title="Belum ada antrean"
-                                  text="Ambil antrean pertama Anda untuk konsultasi." />
+                                  text="Daftar berobat untuk mendapatkan antrean pertama Anda." />
                 </td>
             </tr>
         @endforelse

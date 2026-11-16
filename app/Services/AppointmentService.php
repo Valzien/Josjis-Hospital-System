@@ -58,6 +58,7 @@ class AppointmentService
         $taken = Appointment::query()
             ->where('doctor_id', $schedule->doctor_id)
             ->whereDate('appointment_date', $day->toDateString())
+            ->whereNotIn('status', AppointmentStatus::releasedValues())
             ->pluck('appointment_time')
             ->map(fn ($time) => substr((string) $time, 0, 5))
             ->all();
@@ -125,6 +126,7 @@ class AppointmentService
                 'doctor_schedule_id' => $schedule->id,
                 'appointment_date' => $day->toDateString(),
                 'appointment_time' => $time.':00',
+                'slot_key' => $this->slotKey($schedule->doctor_id, $day->toDateString(), $time),
                 'status' => AppointmentStatus::Booked,
                 'complaint_note' => $complaintNote,
                 'created_by' => $createdBy,
@@ -169,6 +171,7 @@ class AppointmentService
             ->where('doctor_id', $schedule->doctor_id)
             ->whereDate('appointment_date', $day->toDateString())
             ->where('appointment_time', $time.':00')
+            ->whereNotIn('status', AppointmentStatus::releasedValues())
             ->exists();
 
         if ($exists) {
@@ -239,6 +242,7 @@ class AppointmentService
 
         $appointment->update([
             'status' => AppointmentStatus::Cancelled,
+            'slot_key' => null,
             'cancelled_at' => now(),
         ]);
 
@@ -253,6 +257,7 @@ class AppointmentService
 
         $appointment->update([
             'status' => AppointmentStatus::NoShow,
+            'slot_key' => null,
             'cancelled_at' => now(),
         ]);
 
@@ -267,5 +272,11 @@ class AppointmentService
         $queue->appointment()
             ->where('status', AppointmentStatus::CheckedIn->value)
             ->update(['status' => AppointmentStatus::Completed->value]);
+    }
+
+    /** Kunci unik satu slot dokter pada tanggal dan jam tertentu. */
+    private function slotKey(int $doctorId, string $date, string $time): string
+    {
+        return $doctorId.'|'.$date.'|'.substr($time, 0, 5).':00';
     }
 }

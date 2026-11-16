@@ -11,6 +11,7 @@ use App\Models\Patient;
 use App\Models\Queue;
 use App\Models\Receptionist;
 use App\Models\User;
+use App\Services\AppointmentService;
 use App\Services\QueueService;
 use Illuminate\Support\Carbon;
 
@@ -62,7 +63,31 @@ class AppointmentBookingTest extends SmokeTestCase
 
         $this->get(route('patient.appointments.create'))
             ->assertOk()
-            ->assertSee('Buat Janji Temu');
+            ->assertSee('Daftar Berobat');
+    }
+
+    public function test_patient_can_register_for_today_and_get_a_queue_number(): void
+    {
+        $patient = $this->actingPatient();
+        $schedule = DoctorSchedule::factory()->openAllDay()->for(Doctor::factory())->create();
+
+        $response = $this->post(route('patient.appointments.store'), [
+            'doctor_schedule_id' => $schedule->id,
+            'appointment_date' => now()->toDateString(),
+            'complaint_note' => 'Demam sejak pagi.',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $this->assertDatabaseCount('appointments', 0);
+        $this->assertDatabaseCount('queues', 1);
+
+        $queue = Queue::query()->firstOrFail();
+        $this->assertSame($patient->id, $queue->patient_id);
+        $this->assertSame($schedule->doctor_id, $queue->doctor_id);
+        $this->assertTrue($queue->queue_date->isToday());
+        $this->assertSame(QueueStatus::Waiting, $queue->status);
     }
 
     public function test_patient_can_book_a_future_slot(): void
@@ -114,6 +139,65 @@ class AppointmentBookingTest extends SmokeTestCase
         $response->assertSessionHas('error');
         $this->assertDatabaseCount('appointments', 1);
         $this->assertSame(0, Appointment::query()->where('patient_id', $patient->id)->count());
+    }
+
+    public function test_cancelled_slot_can_be_rebooked(): void
+    {
+        $this->actingPatient();
+        $date = Carbon::tomorrow();
+        $schedule = $this->scheduleOn($date);
+
+        $this->post(route('patient.appointments.store'), [
+            'doctor_schedule_id' => $schedule->id,
+            'appointment_date' => $date->toDateString(),
+            'appointment_time' => '09:00',
+        ])->assertSessionHas('success');
+
+        $appointment = Appointment::query()->firstOrFail();
+        $this->assertNotNull($appointment->slot_key);
+
+        $this->patch(route('patient.appointments.cancel', $appointment))
+            ->assertSessionHas('success');
+
+        $this->assertNull($appointment->fresh()->slot_key);
+
+        $second = $this->actingPatient();
+
+        $this->post(route('patient.appointments.store'), [
+            'doctor_schedule_id' => $schedule->id,
+            'appointment_date' => $date->toDateString(),
+            'appointment_time' => '09:00',
+        ])->assertSessionHas('success');
+
+        $this->assertSame(1, Appointment::query()->where('patient_id', $second->id)->count());
+        $this->assertSame(
+            2,
+            Appointment::query()
+                ->whereDate('appointment_date', $date->toDateString())
+                ->where('appointment_time', '09:00:00')
+                ->count()
+        );
+    }
+
+    public function test_released_statuses_do_not_hold_a_slot(): void
+    {
+        $date = Carbon::tomorrow();
+        $schedule = $this->scheduleOn($date);
+
+        Appointment::factory()->forSchedule($schedule)->on($date->toDateString(), '09:00')->create([
+            'status' => AppointmentStatus::Cancelled->value,
+            'slot_key' => null,
+        ]);
+
+        Appointment::factory()->forSchedule($schedule)->on($date->toDateString(), '10:00')->create([
+            'status' => AppointmentStatus::NoShow->value,
+            'slot_key' => null,
+        ]);
+
+        $slots = collect(app(AppointmentService::class)->availableSlots($schedule, $date))->keyBy('time');
+
+        $this->assertTrue($slots['09:00']['available']);
+        $this->assertTrue($slots['10:00']['available']);
     }
 
     public function test_incomplete_profile_cannot_book(): void

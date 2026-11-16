@@ -78,9 +78,9 @@
                         <a href="{{ route('patient.doctors.show', $doctor) }}" class="btn btn-sm btn-light border">
                             <i class="bi bi-info-circle me-1"></i>Lihat Detail
                         </a>
-                        <a href="{{ route('patient.queue.create', ['doctor_id' => $doctor->id]) }}"
+                        <a href="{{ route('patient.appointments.create', ['doctor_id' => $doctor->id]) }}"
                            class="btn btn-sm btn-primary">
-                            <i class="bi bi-ticket-perforated me-1"></i>Ambil Antrean
+                            <i class="bi bi-ticket-perforated me-1"></i>Daftar Berobat
                         </a>
                     </div>
                 </x-card>

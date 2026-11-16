@@ -6,10 +6,7 @@
     <x-page-header title="Janji Temu Saya" description="Jadwalkan kunjungan Anda secara online, lalu check-in di resepsionis pada hari H." icon="bi-calendar-check">
         <x-slot:actions>
             <a href="{{ route('patient.appointments.create') }}" class="btn btn-primary btn-sm">
-                <i class="bi bi-plus-lg me-1"></i>Buat Janji Temu
-            </a>
-            <a href="{{ route('patient.queue.create') }}" class="btn btn-light border btn-sm">
-                <i class="bi bi-ticket-perforated me-1"></i>Antrean Hari Ini
+                <i class="bi bi-calendar-plus me-1"></i>Daftar Berobat
             </a>
         </x-slot:actions>
     </x-page-header>
@@ -94,10 +91,10 @@
             <div class="col-12">
                 <x-card>
                     <x-empty-state icon="bi-calendar-plus" title="Belum ada janji temu mendatang"
-                                  text="Buat janji temu agar Anda tidak perlu menunggu lama di rumah sakit.">
+                                  text="Daftar berobat agar Anda tidak perlu menunggu lama di rumah sakit.">
                         <x-slot:action>
                             <a href="{{ route('patient.appointments.create') }}" class="btn btn-sm btn-primary mt-2">
-                                <i class="bi bi-plus-lg me-1"></i>Buat Janji Temu
+                                <i class="bi bi-plus-lg me-1"></i>Daftar Berobat
                             </a>
                         </x-slot:action>
                     </x-empty-state>

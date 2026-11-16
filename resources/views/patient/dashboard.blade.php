@@ -8,8 +8,8 @@
                    icon="bi-house-heart">
         <x-slot:actions>
             @if (! $queue)
-                <a href="{{ route('patient.queue.create') }}" class="btn btn-primary btn-sm">
-                    <i class="bi bi-ticket-perforated me-1"></i>Ambil Antrean
+                <a href="{{ route('patient.appointments.create') }}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-ticket-perforated me-1"></i>Daftar Berobat
                 </a>
             @else
                 <a href="{{ route('patient.queue.show', $queue) }}" class="btn btn-primary btn-sm">
@@ -23,7 +23,7 @@
         <div class="alert alert-warning d-flex flex-wrap align-items-center justify-content-between gap-2">
             <div>
                 <i class="bi bi-exclamation-triangle me-1"></i>
-                Profil Anda belum lengkap. Lengkapi data agar dapat mengambil antrean.
+                Profil Anda belum lengkap. Lengkapi data agar dapat mendaftar berobat.
             </div>
             <a href="{{ route('patient.profile.edit') }}" class="btn btn-sm btn-warning">Lengkapi Profil</a>
         </div>
@@ -44,9 +44,9 @@
         </div>
         <div class="col-6 col-xl-3">
             <x-stat-card label="Antrean Hari Ini" :value="$queue ? $queue->queue_number : 'Tidak Ada'" icon="bi-ticket-perforated"
-                         :meta="$queue ? $queue->statusLabel() : 'Belum ambil antrean'"
+                         :meta="$queue ? $queue->statusLabel() : 'Belum daftar berobat'"
                          :color="$queue ? 'primary' : 'secondary'"
-                         :href="$queue ? route('patient.queue.show', $queue) : route('patient.queue.create')" />
+                         :href="$queue ? route('patient.queue.show', $queue) : route('patient.appointments.create')" />
         </div>
     </div>
 
@@ -55,8 +55,8 @@
             <x-card title="Status Antrean Hari Ini" icon="bi-ticket-perforated"
                     subtitle="{{ now()->translatedFormat('l, d F Y') }}">
                 <x-slot:actions>
-                    <a href="{{ route('patient.queue.create') }}" class="btn btn-sm btn-primary">
-                        <i class="bi bi-plus-lg me-1"></i>Ambil Antrean
+                    <a href="{{ route('patient.appointments.create') }}" class="btn btn-sm btn-primary">
+                        <i class="bi bi-plus-lg me-1"></i>Daftar Berobat
                     </a>
                 </x-slot:actions>
 
@@ -111,9 +111,9 @@
                     @endif
                 @else
                     <x-empty-state icon="bi-ticket-perforated" title="Belum ada antrean hari ini"
-                                  text="Ambil antrean untuk konsultasi dengan dokter pilihan Anda.">
-                        <a href="{{ route('patient.queue.create') }}" class="btn btn-primary btn-sm mt-2">
-                            <i class="bi bi-plus-lg me-1"></i>Ambil Antrean Sekarang
+                                  text="Daftar berobat hari ini atau buat janji temu dengan dokter pilihan Anda.">
+                        <a href="{{ route('patient.appointments.create') }}" class="btn btn-primary btn-sm mt-2">
+                            <i class="bi bi-plus-lg me-1"></i>Daftar Berobat Sekarang
                         </a>
                     </x-empty-state>
                 @endif
@@ -183,8 +183,8 @@
 
             <x-card title="Pintasan" icon="bi-lightning-charge" class="mt-3">
                 <div class="d-grid gap-2">
-                    <a href="{{ route('patient.queue.create') }}" class="btn btn-light border text-start">
-                        <i class="bi bi-ticket-perforated me-2"></i>Ambil Antrean
+                    <a href="{{ route('patient.appointments.create') }}" class="btn btn-light border text-start">
+                        <i class="bi bi-ticket-perforated me-2"></i>Daftar Berobat
                     </a>
                     <a href="{{ route('patient.doctors.index') }}" class="btn btn-light border text-start">
                         <i class="bi bi-heart-pulse me-2"></i>Cari Dokter

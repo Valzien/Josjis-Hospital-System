@@ -238,7 +238,7 @@ return [
         ],
         UserRole::Patient->value => [
             ['section' => 'Utama', 'label' => 'Dashboard', 'route' => 'patient.dashboard', 'icon' => 'bi-speedometer2'],
-            ['section' => 'Pelayanan', 'label' => 'Ambil Antrean', 'route' => 'patient.queue.create', 'icon' => 'bi-ticket-perforated'],
+            ['section' => 'Pelayanan', 'label' => 'Daftar Berobat', 'route' => 'patient.appointments.create', 'icon' => 'bi-calendar-plus'],
             ['label' => 'Antrean Saya', 'route' => 'patient.queue.index', 'icon' => 'bi-list-ol'],
             ['label' => 'Janji Temu', 'route' => 'patient.appointments.index', 'icon' => 'bi-calendar-check'],
             ['label' => 'Dokter', 'route' => 'patient.doctors.index', 'icon' => 'bi-heart-pulse'],

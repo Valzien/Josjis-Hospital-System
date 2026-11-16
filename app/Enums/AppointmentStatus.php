@@ -62,6 +62,20 @@ enum AppointmentStatus: string
         ];
     }
 
+    /**
+     * Status yang tidak lagi menahan slot, sehingga jam yang sama boleh
+     * dipesan ulang oleh pasien lain.
+     *
+     * @return array<int, string>
+     */
+    public static function releasedValues(): array
+    {
+        return [
+            self::Cancelled->value,
+            self::NoShow->value,
+        ];
+    }
+
     /** @return array<int, self> */
     public function allowedTransitions(): array
     {

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable([
@@ -47,6 +48,11 @@ class MedicalRecord extends Model
     public function prescription(): HasOne
     {
         return $this->hasOne(Prescription::class);
+    }
+
+    public function services(): HasMany
+    {
+        return $this->hasMany(MedicalRecordService::class);
     }
 
     public function invoice(): HasOne

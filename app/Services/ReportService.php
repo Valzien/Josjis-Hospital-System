@@ -2,15 +2,19 @@
 
 namespace App\Services;
 
+use App\Enums\InvoiceStatus;
 use App\Enums\QueueStatus;
 use App\Enums\TransactionType;
 use App\Models\Doctor;
+use App\Models\Invoice;
 use App\Models\MedicalRecord;
 use App\Models\Medicine;
 use App\Models\MedicineTransaction;
 use App\Models\Patient;
+use App\Models\Payment;
 use App\Models\Prescription;
 use App\Models\Queue;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -34,6 +38,8 @@ class ReportService
             'prescriptions' => 'Laporan Resep',
             'medicines' => 'Laporan Obat',
             'transactions' => 'Laporan Transaksi Obat',
+            'invoices' => 'Laporan Tagihan',
+            'payments' => 'Laporan Pembayaran',
         ];
     }
 
@@ -57,6 +63,8 @@ class ReportService
             'prescriptions' => ['Kode Resep', 'Tanggal', 'Pasien', 'Dokter', 'Status', 'Jumlah Item', 'Total'],
             'medicines' => ['Kode', 'Nama Obat', 'Kategori', 'Satuan', 'Stok', 'Stok Min', 'Harga', 'Nilai'],
             'transactions' => ['Waktu', 'Kode', 'Obat', 'Tipe', 'Jumlah', 'Stok Sebelum', 'Stok Sesudah', 'Referensi', 'Petugas'],
+            'invoices' => ['Kode', 'Tanggal', 'Pasien', 'Dokter', 'Status', 'Subtotal', 'Potongan', 'Total', 'Dibayar', 'Sisa'],
+            'payments' => ['Kode', 'Waktu', 'Tagihan', 'Pasien', 'Metode', 'Nominal', 'Kasir'],
             default => [],
         };
     }
@@ -77,6 +85,13 @@ class ReportService
             'prescriptions' => Prescription::query()->whereBetween('created_at', [$from, $to.' 23:59:59'])->count(),
             'medicines_out' => MedicineTransaction::query()->where('type', TransactionType::Out->value)->whereBetween('created_at', [$from, $to.' 23:59:59'])->count(),
             'medicines_in' => MedicineTransaction::query()->where('type', TransactionType::In->value)->whereBetween('created_at', [$from, $to.' 23:59:59'])->count(),
+            'revenue' => (float) Payment::query()->whereBetween('paid_at', [$from, $to.' 23:59:59'])->sum('amount'),
+            'invoices' => Invoice::query()->whereBetween('created_at', [$from, $to.' 23:59:59'])->count(),
+            'payments' => Payment::query()->whereBetween('paid_at', [$from, $to.' 23:59:59'])->count(),
+            'outstanding' => (float) Invoice::query()
+                ->whereIn('status', InvoiceStatus::openValues())
+                ->whereBetween('created_at', [$from, $to.' 23:59:59'])
+                ->sum(DB::raw('total - paid_amount')),
         ];
     }
 
@@ -93,6 +108,8 @@ class ReportService
             'prescriptions' => $this->prescriptionRows($filters),
             'medicines' => $this->medicineRows($filters),
             'transactions' => $this->transactionRows($filters),
+            'invoices' => $this->invoiceRows($filters),
+            'payments' => $this->paymentRows($filters),
             default => [],
         };
     }
@@ -232,6 +249,82 @@ class ReportService
             ])->all();
     }
 
+    /** @return array<int, array<string, mixed>> */
+    private function invoiceRows(array $filters): array
+    {
+        return $this->invoiceQuery($filters)
+            ->with(['patient', 'queue.doctor'])
+            ->orderBy('created_at')
+            ->get()
+            ->map(fn (Invoice $invoice) => [
+                $invoice->code,
+                $invoice->created_at->format('d/m/Y H:i'),
+                $invoice->patient?->name ?? '-',
+                $invoice->queue?->doctor?->name ?? '-',
+                $invoice->statusLabel(),
+                $this->rupiah((float) $invoice->subtotal),
+                $this->rupiah((float) $invoice->discount),
+                $this->rupiah((float) $invoice->total),
+                $this->rupiah((float) $invoice->paid_amount),
+                $this->rupiah($invoice->remainingAmount()),
+            ])->all();
+    }
+
+    /** @return array<int, array<string, mixed>> */
+    private function paymentRows(array $filters): array
+    {
+        return $this->paymentQuery($filters)
+            ->with(['invoice.patient', 'invoice.queue.doctor', 'receivedBy'])
+            ->orderBy('paid_at')
+            ->get()
+            ->map(fn (Payment $payment) => [
+                $payment->code,
+                $payment->paid_at?->format('d/m/Y H:i') ?? '-',
+                $payment->invoice?->code ?? '-',
+                $payment->invoice?->patient?->name ?? '-',
+                $payment->methodLabel(),
+                $this->rupiah((float) $payment->amount),
+                $payment->receivedBy?->name ?? '-',
+            ])->all();
+    }
+
+    /**
+     * @param  array<string, mixed>  $filters
+     * @return Builder<Invoice>
+     */
+    private function invoiceQuery(array $filters): Builder
+    {
+        return Invoice::query()
+            ->whereBetween('created_at', [$filters['from'], $filters['to'].' 23:59:59'])
+            ->when($filters['patient_id'] ?? null, fn ($q) => $q->where('patient_id', $filters['patient_id']))
+            ->when($filters['doctor_id'] ?? null, fn ($q) => $q->whereHas('queue', fn ($qq) => $qq->where('doctor_id', $filters['doctor_id'])))
+            ->when($filters['status'] ?? null, fn ($q) => $q->status($filters['status']))
+            ->when($filters['q'] ?? null, fn ($q) => $q->search($filters['q']));
+    }
+
+    /**
+     * @param  array<string, mixed>  $filters
+     * @return Builder<Payment>
+     */
+    private function paymentQuery(array $filters): Builder
+    {
+        return Payment::query()
+            ->whereBetween('paid_at', [$filters['from'], $filters['to'].' 23:59:59'])
+            ->when($filters['method'] ?? null, fn ($q) => $q->where('method', $filters['method']))
+            ->when($filters['patient_id'] ?? null, fn ($q) => $q->whereHas('invoice', fn ($i) => $i->where('patient_id', $filters['patient_id'])))
+            ->when($filters['doctor_id'] ?? null, fn ($q) => $q->whereHas('invoice.queue', fn ($qq) => $qq->where('doctor_id', $filters['doctor_id'])))
+            ->when($filters['q'] ?? null, fn ($q) => $q->where(function (Builder $qq) use ($filters) {
+                $like = '%'.str_replace(['%', '_'], ['\%', '\_'], $filters['q']).'%';
+                $qq->where('code', 'like', $like)
+                    ->orWhereHas('invoice', fn (Builder $i) => $i->search($filters['q']));
+            }));
+    }
+
+    private function rupiah(float $value): string
+    {
+        return 'Rp '.number_format($value, 0, ',', '.');
+    }
+
     /**
      * @param  array<string, mixed>  $filters
      * @return array<string, mixed>
@@ -268,6 +361,16 @@ class ReportService
                 'total_selesai' => Queue::query()->whereBetween('queue_date', [$filters['from'], $filters['to']])
                     ->where('status', QueueStatus::Completed->value)->count(),
             ],
+            'invoices' => [
+                'total_tagihan' => count($rows),
+                'total_nilai' => $this->rupiah((float) $this->invoiceQuery($filters)->sum('total')),
+                'total_dibayar' => $this->rupiah((float) $this->invoiceQuery($filters)->sum('paid_amount')),
+                'total_sisa' => $this->rupiah((float) $this->invoiceQuery($filters)->sum(DB::raw('total - paid_amount'))),
+            ],
+            'payments' => [
+                'total_pembayaran' => count($rows),
+                'total_pendapatan' => $this->rupiah((float) $this->paymentQuery($filters)->sum('amount')),
+            ],
             default => [
                 'total_data' => count($rows),
             ],
@@ -285,25 +388,31 @@ class ReportService
      */
     public function chart(string $report, array $filters): array
     {
-        [$query, $dateColumn] = match ($report) {
+        [$query, $dateColumn, $aggregate] = match ($report) {
             'queues' => [
                 Queue::query()->when($filters['doctor_id'], fn ($q) => $q->where('queues.doctor_id', $filters['doctor_id'])),
                 'queue_date',
+                'count(*)',
             ],
             'examinations' => [
                 MedicalRecord::query()->when($filters['doctor_id'], fn ($q) => $q->where('medical_records.doctor_id', $filters['doctor_id'])),
                 'examined_at',
+                'count(*)',
             ],
             'prescriptions' => [
                 Prescription::query()->when($filters['doctor_id'], fn ($q) => $q->where('prescriptions.doctor_id', $filters['doctor_id'])),
                 'created_at',
+                'count(*)',
             ],
-            'patients' => [Patient::query(), 'created_at'],
+            'patients' => [Patient::query(), 'created_at', 'count(*)'],
             'transactions' => [
                 MedicineTransaction::query()->when($filters['medicine_id'], fn ($q) => $q->where('medicine_transactions.medicine_id', $filters['medicine_id'])),
                 'created_at',
+                'count(*)',
             ],
-            default => [null, null],
+            'invoices' => [$this->invoiceQuery($filters), 'created_at', 'count(*)'],
+            'payments' => [$this->paymentQuery($filters), 'paid_at', 'sum(amount)'],
+            default => [null, null, null],
         };
 
         if ($query === null) {
@@ -325,15 +434,50 @@ class ReportService
             ? "strftime('%Y-%m-%d', {$dateColumn})"
             : "DATE_FORMAT({$dateColumn}, '%Y-%m-%d')";
 
-        $rows = $query->selectRaw("{$expression} as d, count(*) as total")
+        $rows = $query->selectRaw("{$expression} as d, {$aggregate} as total")
             ->groupBy('d')
             ->orderBy('d')
             ->pluck('total', 'd');
 
         return [
             'labels' => $rows->keys()->map(fn ($d) => Carbon::parse($d)->format('d/m'))->all(),
-            'values' => $rows->map(fn ($v) => (int) $v)->values()->all(),
+            'values' => $rows->map(fn ($v) => (int) round((float) $v))->values()->all(),
         ];
+    }
+
+    /**
+     * Deret pendapatan harian berdasarkan pembayaran yang diterima.
+     *
+     * @param  array<string, mixed>  $filters
+     * @return array{labels: array<int, string>, values: array<int, int|float>}
+     */
+    public function revenueSeries(array $filters): array
+    {
+        $from = Carbon::parse($filters['from'])->startOfDay();
+        $to = Carbon::parse($filters['to'])->startOfDay();
+        $days = max(1, $from->diffInDays($to));
+
+        $expression = DB::connection()->getDriverName() === 'sqlite'
+            ? "strftime('%Y-%m-%d', paid_at)"
+            : "DATE_FORMAT(paid_at, '%Y-%m-%d')";
+
+        $rows = Payment::query()
+            ->whereBetween('paid_at', [$from, $to->copy()->endOfDay()])
+            ->when($filters['method'] ?? null, fn ($q) => $q->where('method', $filters['method']))
+            ->selectRaw("{$expression} as d, sum(amount) as total")
+            ->groupBy('d')
+            ->pluck('total', 'd');
+
+        $labels = [];
+        $values = [];
+
+        for ($i = 0; $i <= $days && $i < 120; $i++) {
+            $date = $from->copy()->addDays($i);
+            $labels[] = $date->format('d/m');
+            $values[] = (float) ($rows[$date->toDateString()] ?? 0);
+        }
+
+        return ['labels' => $labels, 'values' => $values];
     }
 
     /**

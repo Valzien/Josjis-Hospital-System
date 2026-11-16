@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\AuditLog;
 use App\Models\Pharmacist;
 use App\Models\Receptionist;
+use App\Models\Service;
 use App\Models\User;
 use App\Services\ReportService;
 
@@ -28,6 +29,8 @@ class AdminPagesTest extends SmokeTestCase
             route('admin.patients.index'),
             route('admin.patients.create'),
             route('admin.schedules.index'),
+            route('admin.services.index'),
+            route('admin.services.create'),
             route('admin.reports.index'),
             route('admin.audit-logs.index'),
             route('admin.settings.index'),
@@ -49,6 +52,7 @@ class AdminPagesTest extends SmokeTestCase
             route('admin.patients.show', $data['patient']),
             route('admin.patients.edit', $data['patient']),
             route('admin.audit-logs.show', AuditLog::factory()->create()),
+            route('admin.services.edit', Service::factory()->create()),
         ]);
 
         // Jadwal tidak punya halaman detail tersendiri, hanya form ubah.

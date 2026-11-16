@@ -72,6 +72,36 @@
         <tr><th>Catatan</th><td class="notes">{{ $record->notes ?? '-' }}</td></tr>
     </table>
 
+    @if ($record->services->isNotEmpty())
+        <h2>Tindakan &amp; Tarif</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Layanan</th>
+                    <th>Jumlah</th>
+                    <th>Tarif</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($record->services as $service)
+                    <tr>
+                        <td>{{ $service->name }}</td>
+                        <td>{{ $service->quantity }} {{ $service->unit }}</td>
+                        <td>Rp {{ number_format((float) $service->unit_price, 0, ',', '.') }}</td>
+                        <td>Rp {{ number_format((float) $service->subtotal, 0, ',', '.') }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="3" style="text-align:right;font-weight:bold">Total Tindakan</td>
+                    <td style="font-weight:bold">Rp {{ number_format((float) $record->services->sum('subtotal'), 0, ',', '.') }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    @endif
+
     @if ($record->prescription)
         <h2>Resep ({{ $record->prescription->code }})</h2>
         <table>

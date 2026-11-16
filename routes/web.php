@@ -93,6 +93,9 @@ Route::middleware(['auth', 'role:admin'])
 
         Route::resource('schedules', Admin\ScheduleController::class);
 
+        Route::resource('services', Admin\ServiceController::class);
+        Route::put('services/{service}/status', [Admin\ServiceController::class, 'toggleStatus'])->name('services.status');
+
         Route::get('reports', [Admin\ReportController::class, 'index'])->name('reports.index');
         Route::get('reports/{report}', [Admin\ReportController::class, 'show'])->name('reports.show');
         Route::get('reports/{report}/export/{format}', [ReportExportController::class, 'export'])->name('reports.export');

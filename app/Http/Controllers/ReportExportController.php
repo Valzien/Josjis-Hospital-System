@@ -23,6 +23,7 @@ class ReportExportController extends Controller
             'patient_id' => $request->integer('patient_id') ?: null,
             'medicine_id' => $request->integer('medicine_id') ?: null,
             'status' => $request->string('status')->value() ?: null,
+            'method' => $request->string('method')->value() ?: null,
             'q' => $request->string('q')->trim()->value() ?: null,
         ];
 

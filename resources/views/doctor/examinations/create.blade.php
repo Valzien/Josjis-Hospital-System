@@ -131,6 +131,50 @@
                     </div>
                 </x-card>
 
+                <x-card title="Tindakan & Tarif" icon="bi-tags" class="mt-3"
+                        subtitle="Pilih tindakan yang dilakukan. Tarif otomatis masuk ke tagihan kasir.">
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle jhs-table-compact">
+                            <thead>
+                                <tr>
+                                    <th>Tindakan</th>
+                                    <th style="width:110px">Jumlah</th>
+                                    <th style="width:44px"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="serviceRows"></tbody>
+                        </table>
+                    </div>
+
+                    <button type="button" class="btn btn-sm btn-light border" id="addService">
+                        <i class="bi bi-plus-lg me-1"></i>Tambah Tindakan
+                    </button>
+
+                    <template id="serviceTemplate">
+                        <tr>
+                            <td>
+                                <select class="form-select form-select-sm" name="services[__SINDEX__][service_id]">
+                                    <option value="">Pilih tindakan</option>
+                                    @foreach ($services as $service)
+                                        <option value="{{ $service->id }}">
+                                            {{ $service->name }} &mdash; Rp {{ number_format((float) $service->price, 0, ',', '.') }} ({{ $service->unit }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </td>
+                            <td>
+                                <input type="number" class="form-control form-control-sm"
+                                       name="services[__SINDEX__][quantity]" value="1" min="1" max="100">
+                            </td>
+                            <td class="text-end">
+                                <button type="button" class="btn btn-sm btn-link text-danger" data-remove-service aria-label="Hapus baris">
+                                    <i class="bi bi-trash3"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </template>
+                </x-card>
+
                 <x-card title="Resep" icon="bi-capsule" class="mt-3">
                     <x-slot:actions>
                         <div class="form-check form-switch">
@@ -270,6 +314,28 @@
             });
 
             syncPanel();
+        })();
+
+        (function () {
+            const rows = document.getElementById('serviceRows');
+            const template = document.getElementById('serviceTemplate');
+            const addButton = document.getElementById('addService');
+            if (!rows || !template || !addButton) return;
+
+            let index = 0;
+
+            function addRow() {
+                const html = template.innerHTML.replaceAll('__SINDEX__', String(index++));
+                rows.insertAdjacentHTML('beforeend', html);
+            }
+
+            addButton.addEventListener('click', addRow);
+
+            rows.addEventListener('click', function (event) {
+                const button = event.target.closest('[data-remove-service]');
+                if (!button) return;
+                button.closest('tr').remove();
+            });
         })();
     </script>
 @endpush

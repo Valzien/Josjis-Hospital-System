@@ -66,6 +66,22 @@
         </div>
     </div>
 
+    <div class="row g-3 mb-3">
+        <div class="col-12 col-xl-4">
+            <x-stat-card label="Pendapatan Diterima" :value="'Rp '.number_format($summary['revenue'], 0, ',', '.')" icon="bi-cash-stack" color="success"
+                         :meta="$summary['payments'].' pembayaran'"
+                         :href="route('admin.reports.show', ['report' => 'payments'] + request()->only('from', 'to', 'doctor_id'))" />
+        </div>
+        <div class="col-6 col-xl-4">
+            <x-stat-card label="Tagihan Dibuat" :value="$summary['invoices']" icon="bi-receipt" color="primary"
+                         :href="route('admin.reports.show', ['report' => 'invoices'] + request()->only('from', 'to', 'doctor_id'))" />
+        </div>
+        <div class="col-6 col-xl-4">
+            <x-stat-card label="Piutang Berjalan" :value="'Rp '.number_format($summary['outstanding'], 0, ',', '.')" icon="bi-hourglass-split" color="warning"
+                         :href="route('admin.reports.show', ['report' => 'invoices'] + request()->only('from', 'to', 'doctor_id'))" />
+        </div>
+    </div>
+
     <div class="row g-3">
         <div class="col-xl-7">
             <x-card title="Tren Antrean" subtitle="{{ now()->parse($filters['from'])->translatedFormat('d M Y') }} &mdash; {{ now()->parse($filters['to'])->translatedFormat('d M Y') }}" icon="bi-graph-up">
@@ -88,6 +104,8 @@
                                         'examinations' => 'bi-clipboard2-pulse',
                                         'prescriptions' => 'bi-file-earmark-medical',
                                         'medicines' => 'bi-capsule',
+                                        'invoices' => 'bi-receipt',
+                                        'payments' => 'bi-cash-stack',
                                         default => 'bi-arrow-left-right',
                                     } }} text-primary"></i>
                                     <span class="small fw-semibold text-dark">{{ $label }}</span>
@@ -96,6 +114,14 @@
                             </a>
                         </div>
                     @endforeach
+                </div>
+            </x-card>
+        </div>
+
+        <div class="col-12">
+            <x-card title="Tren Pendapatan" subtitle="{{ now()->parse($filters['from'])->translatedFormat('d M Y') }} &mdash; {{ now()->parse($filters['to'])->translatedFormat('d M Y') }}" icon="bi-cash-coin">
+                <div style="min-height:240px">
+                    <canvas id="chartRevenueTrend"></canvas>
                 </div>
             </x-card>
         </div>
@@ -119,6 +145,20 @@
                 data: @json($queueTrend['values']),
                 borderColor: '#0d9488',
                 backgroundColor: 'rgba(13,148,136,.12)',
+                fill: true,
+                tension: .35,
+                borderWidth: 2,
+                pointRadius: 2,
+            }]
+        });
+
+        window.jhsChart('chartRevenueTrend', {
+            labels: @json($revenueTrend['labels']),
+            datasets: [{
+                label: 'Pendapatan',
+                data: @json($revenueTrend['values']),
+                borderColor: '#198754',
+                backgroundColor: 'rgba(25,135,84,.12)',
                 fill: true,
                 tension: .35,
                 borderWidth: 2,

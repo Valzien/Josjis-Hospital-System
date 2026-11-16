@@ -90,6 +90,39 @@
                 </dl>
             </x-card>
 
+            @if ($record->services->isNotEmpty())
+                <x-card title="Tindakan & Tarif" icon="bi-tags" class="mt-3">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle jhs-table-compact mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Tindakan</th>
+                                    <th class="text-center">Jumlah</th>
+                                    <th class="text-end">Tarif</th>
+                                    <th class="text-end">Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($record->services as $service)
+                                    <tr>
+                                        <td class="small">{{ $service->name }}</td>
+                                        <td class="small text-center">{{ $service->quantity }} {{ $service->unit }}</td>
+                                        <td class="small text-end text-nowrap">Rp {{ number_format((float) $service->unit_price, 0, ',', '.') }}</td>
+                                        <td class="small text-end fw-semibold text-nowrap">Rp {{ number_format((float) $service->subtotal, 0, ',', '.') }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="3" class="text-end small text-muted-2">Total Tindakan</td>
+                                    <td class="text-end small fw-bold text-nowrap">Rp {{ number_format((float) $record->services->sum('subtotal'), 0, ',', '.') }}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </x-card>
+            @endif
+
             @if ($record->prescription)
                 <x-card title="Resep" icon="bi-file-earmark-medical" class="mt-3">
                     <x-slot:actions>

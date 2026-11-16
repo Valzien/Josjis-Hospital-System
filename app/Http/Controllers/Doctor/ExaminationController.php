@@ -8,6 +8,7 @@ use App\Http\Requests\Doctor\ExaminationRequest;
 use App\Models\MedicalRecord;
 use App\Models\Medicine;
 use App\Models\Queue;
+use App\Models\Service;
 use App\Services\AuditLogger;
 use App\Services\NumberGenerator;
 use App\Services\PrescriptionService;
@@ -67,6 +68,7 @@ class ExaminationController extends Controller
             'queue' => $queue,
             'patient' => $queue->patient,
             'medicines' => Medicine::query()->active()->orderBy('name')->get(),
+            'services' => Service::query()->active()->orderBy('category')->orderBy('name')->get(),
             'recentRecords' => $queue->patient->medicalRecords()->with('doctor')->latest('examined_at')->limit(3)->get(),
             'recordNumberPreview' => $this->numbers->medicalRecordNumberPreview(),
         ]);
@@ -92,6 +94,8 @@ class ExaminationController extends Controller
                     'queue_id' => $queue->id,
                     ...$request->payload(),
                 ]);
+
+                $this->attachServices($record, $request->serviceItems());
 
                 $prescription = null;
 
@@ -124,15 +128,52 @@ class ExaminationController extends Controller
 
     public function show(MedicalRecord $record): View
     {
-        $record->load(['patient.user', 'doctor', 'queue', 'prescription.details.medicine']);
+        $record->load(['patient.user', 'doctor', 'queue', 'prescription.details.medicine', 'services']);
 
         return view('doctor.examinations.show', ['record' => $record]);
     }
 
     public function print(MedicalRecord $record): View
     {
-        $record->load(['patient', 'doctor', 'prescription.details.medicine']);
+        $record->load(['patient', 'doctor', 'prescription.details.medicine', 'services']);
 
         return view('doctor.examinations.print', ['record' => $record]);
+    }
+
+    /**
+     * Menyimpan snapshot tindakan agar riwayat tagihan tidak berubah saat tarif diperbarui.
+     *
+     * @param  array<int, array{service_id:int, quantity:int}>  $selections
+     */
+    private function attachServices(MedicalRecord $record, array $selections): void
+    {
+        if ($selections === []) {
+            return;
+        }
+
+        $services = Service::query()
+            ->whereIn('id', array_column($selections, 'service_id'))
+            ->get()
+            ->keyBy('id');
+
+        foreach ($selections as $selection) {
+            $service = $services->get($selection['service_id']);
+
+            if ($service === null) {
+                continue;
+            }
+
+            $quantity = max(1, $selection['quantity']);
+            $price = (float) $service->price;
+
+            $record->services()->create([
+                'service_id' => $service->id,
+                'name' => $service->name,
+                'unit' => $service->unit,
+                'unit_price' => $price,
+                'quantity' => $quantity,
+                'subtotal' => $price * $quantity,
+            ]);
+        }
     }
 }

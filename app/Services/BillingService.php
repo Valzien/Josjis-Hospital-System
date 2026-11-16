@@ -17,8 +17,8 @@ use RuntimeException;
  * Logika tagihan & kasir.
  *
  * Satu kunjungan (antrean dengan rekam medis) menghasilkan satu invoice berisi
- * biaya konsultasi dan rincian obat dari resep. Pembayaran boleh dicicil;
- * status invoice mengikuti total pembayaran yang masuk.
+ * biaya konsultasi, tindakan/tarif yang dipilih dokter, dan rincian obat dari resep.
+ * Pembayaran boleh dicicil; status invoice mengikuti total pembayaran yang masuk.
  */
 class BillingService
 {
@@ -36,7 +36,7 @@ class BillingService
      */
     public function previewForQueue(Queue $queue): array
     {
-        $queue->loadMissing(['medicalRecord.prescription.details.medicine', 'doctor', 'patient']);
+        $queue->loadMissing(['medicalRecord.prescription.details.medicine', 'medicalRecord.services', 'doctor', 'patient']);
 
         $record = $queue->medicalRecord;
 
@@ -70,6 +70,18 @@ class BillingService
                     'reference_id' => $detail->id,
                 ];
             }
+        }
+
+        foreach ($record->services as $service) {
+            $items[] = [
+                'type' => 'service',
+                'description' => $service->name,
+                'quantity' => (int) $service->quantity,
+                'unit_price' => (float) $service->unit_price,
+                'subtotal' => (float) $service->subtotal,
+                'reference_type' => $service::class,
+                'reference_id' => $service->id,
+            ];
         }
 
         $subtotal = array_sum(array_column($items, 'subtotal'));

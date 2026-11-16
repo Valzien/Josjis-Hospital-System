@@ -32,6 +32,10 @@ class ExaminationRequest extends FormRequest
             'items.*.dosage' => ['nullable', 'string', 'max:60'],
             'items.*.instructions' => ['nullable', 'string', 'max:500'],
             'prescription_notes' => ['nullable', 'string', 'max:1000'],
+
+            'services' => ['nullable', 'array'],
+            'services.*.service_id' => ['required_with:services', 'integer', 'exists:services,id'],
+            'services.*.quantity' => ['required_with:services', 'integer', 'min:1', 'max:100'],
         ];
     }
 
@@ -43,6 +47,8 @@ class ExaminationRequest extends FormRequest
             'diagnosis.required' => 'Diagnosis/hasil pemeriksaan wajib diisi sebelum menyimpan.',
             'items.*.medicine_id.required_with' => 'Pilih obat untuk setiap baris resep.',
             'items.*.quantity.required_with' => 'Jumlah obat minimal 1.',
+            'services.*.service_id.required_with' => 'Pilih tindakan untuk setiap baris tarif.',
+            'services.*.quantity.required_with' => 'Jumlah tindakan minimal 1.',
         ];
     }
 
@@ -54,6 +60,7 @@ class ExaminationRequest extends FormRequest
             'examination_result' => 'hasil pemeriksaan',
             'diagnosis' => 'diagnosis',
             'items' => 'resep',
+            'services' => 'tindakan',
         ];
     }
 
@@ -102,5 +109,28 @@ class ExaminationRequest extends FormRequest
     public function wantsPrescription(): bool
     {
         return $this->boolean('with_prescription') && $this->prescriptionItems() !== [];
+    }
+
+    /**
+     * Tindakan/tarif yang dipilih (baris kosong diabaikan).
+     *
+     * @return array<int, array{service_id:int, quantity:int}>
+     */
+    public function serviceItems(): array
+    {
+        $items = $this->input('services', []);
+
+        if (! is_array($items)) {
+            return [];
+        }
+
+        return collect($items)
+            ->filter(fn ($item) => is_array($item) && ! empty($item['service_id']) && ! empty($item['quantity']))
+            ->map(fn (array $item) => [
+                'service_id' => (int) $item['service_id'],
+                'quantity' => (int) $item['quantity'],
+            ])
+            ->values()
+            ->all();
     }
 }

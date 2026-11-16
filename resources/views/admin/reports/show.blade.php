@@ -56,7 +56,7 @@
                 <input type="date" name="to" id="to" value="{{ $filters['to'] }}" class="form-control form-control-sm">
             </div>
 
-            @if (in_array($report, ['queues', 'examinations', 'prescriptions'], true))
+            @if (in_array($report, ['queues', 'examinations', 'prescriptions', 'invoices', 'payments'], true))
                 <div class="col-lg-3">
                     <label class="form-label small mb-1" for="doctor_id">Dokter</label>
                     <select name="doctor_id" id="doctor_id" class="form-select form-select-sm">
@@ -75,6 +75,30 @@
                         <option value="">Semua Status</option>
                         @foreach (\App\Enums\PrescriptionStatus::options() as $value => $label)
                             <option value="{{ $value }}" @selected(($filters['status'] ?? '') === $value)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            @endif
+
+            @if ($report === 'invoices')
+                <div class="col-lg-2">
+                    <label class="form-label small mb-1" for="status">Status Tagihan</label>
+                    <select name="status" id="status" class="form-select form-select-sm">
+                        <option value="">Semua Status</option>
+                        @foreach (\App\Enums\InvoiceStatus::options() as $value => $label)
+                            <option value="{{ $value }}" @selected(($filters['status'] ?? '') === $value)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            @endif
+
+            @if ($report === 'payments')
+                <div class="col-lg-2">
+                    <label class="form-label small mb-1" for="method">Metode</label>
+                    <select name="method" id="method" class="form-select form-select-sm">
+                        <option value="">Semua Metode</option>
+                        @foreach (\App\Enums\PaymentMethod::options() as $value => $label)
+                            <option value="{{ $value }}" @selected(($filters['method'] ?? '') === $value)>{{ $label }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -104,7 +128,7 @@
             <div class="row g-3">
                 @foreach ($totals as $label => $value)
                     <div class="col-6 col-md-3">
-                        <div class="small text-muted-2">{{ $label }}</div>
+                        <div class="small text-muted-2">{{ \Illuminate\Support\Str::headline($label) }}</div>
                         <div class="fw-bold">{{ is_numeric($value) ? number_format((float) $value, 0, ',', '.') : $value }}</div>
                     </div>
                 @endforeach

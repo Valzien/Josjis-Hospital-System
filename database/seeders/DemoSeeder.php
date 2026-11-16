@@ -10,6 +10,7 @@ use App\Models\Medicine;
 use App\Models\Patient;
 use App\Models\Pharmacist;
 use App\Models\Receptionist;
+use App\Models\Service;
 use App\Models\User;
 use App\Services\NumberGenerator;
 use Illuminate\Database\Seeder;
@@ -35,6 +36,7 @@ class DemoSeeder extends Seeder
             $this->seedDoctors();
             $this->seedSchedules();
             $this->seedMedicines();
+            $this->seedServices();
             $this->seedPatients();
         });
     }
@@ -176,8 +178,39 @@ class DemoSeeder extends Seeder
         Medicine::whereIn('medicine_code', ['CET-002', 'INS-001'])->update(['stock' => 6]);
     }
 
-    /* ----------------------------------------------------------- Pasien */
+    /* --------------------------------------------------- Tarif Layanan */
 
+    private function seedServices(): void
+    {
+        $services = [
+            ['SVC-001', 'Pemeriksaan Umum', 'Konsultasi', 'Kunjungan', 75000, 'Pemeriksaan dan konsultasi dokter umum.'],
+            ['SVC-002', 'Konsultasi Spesialis', 'Konsultasi', 'Kunjungan', 150000, 'Konsultasi dengan dokter spesialis.'],
+            ['SVC-003', 'Nebulisasi', 'Tindakan Medis', 'Tindakan', 85000, 'Terapi uap untuk gangguan pernapasan.'],
+            ['SVC-004', 'Pemasangan Infus', 'Tindakan Medis', 'Tindakan', 65000, 'Pemasangan infus dan cairan dasar.'],
+            ['SVC-005', 'Perawatan Luka Ringan', 'Keperawatan', 'Tindakan', 45000, 'Pembersihan dan pembalutan luka ringan.'],
+            ['SVC-006', 'Suntik Intramuskular', 'Keperawatan', 'Kali', 35000, 'Pemberian obat melalui injeksi intramuskular.'],
+            ['SVC-007', 'Pemeriksaan Darah Lengkap', 'Laboratorium', 'Pemeriksaan', 120000, 'Pemeriksaan hematologi dasar.'],
+            ['SVC-008', 'Pemeriksaan Gula Darah', 'Laboratorium', 'Pemeriksaan', 35000, 'Cek kadar glukosa darah.'],
+            ['SVC-009', 'Rontgen Thorax', 'Radiologi', 'Pemeriksaan', 175000, 'Foto rontgen dada satu posisi.'],
+            ['SVC-010', 'EKG', 'Radiologi', 'Pemeriksaan', 95000, 'Elektrokardiografi untuk evaluasi jantung.'],
+        ];
+
+        foreach ($services as [$code, $name, $category, $unit, $price, $description]) {
+            Service::updateOrCreate(
+                ['code' => $code],
+                [
+                    'name' => $name,
+                    'category' => $category,
+                    'unit' => $unit,
+                    'price' => $price,
+                    'description' => $description,
+                    'status' => ActiveStatus::Active->value,
+                ],
+            );
+        }
+    }
+
+    /* ----------------------------------------------------------- Pasien */
     private function seedPatients(): void
     {
         $password = Hash::make('password');

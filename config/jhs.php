@@ -200,6 +200,7 @@ return [
             ['label' => 'Resepsionis', 'route' => 'admin.receptionists.index', 'icon' => 'bi-headset'],
             ['label' => 'Pasien', 'route' => 'admin.patients.index', 'icon' => 'bi-person-vcard'],
             ['label' => 'Jadwal Dokter', 'route' => 'admin.schedules.index', 'icon' => 'bi-calendar-week'],
+            ['label' => 'Tarif & Tindakan', 'route' => 'admin.services.index', 'icon' => 'bi-tags'],
             ['section' => 'Monitoring', 'label' => 'Laporan', 'route' => 'admin.reports.index', 'icon' => 'bi-graph-up-arrow'],
             ['label' => 'Tagihan & Kasir', 'route' => 'cashier.invoices.index', 'icon' => 'bi-cash-coin'],
             ['label' => 'Audit Log', 'route' => 'admin.audit-logs.index', 'icon' => 'bi-shield-check'],

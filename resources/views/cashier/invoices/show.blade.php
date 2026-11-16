@@ -82,9 +82,14 @@
                                 <tr>
                                     <td>
                                         <div class="small fw-semibold">{{ $item->description }}</div>
-                                        <span class="jhs-badge {{ $item->type === 'consultation' ? 'jhs-badge-primary' : 'jhs-badge-info' }} mt-1">
-                                            <i class="bi {{ $item->type === 'consultation' ? 'bi-stethoscope' : 'bi-capsule' }}"></i>
-                                            {{ $item->type === 'consultation' ? 'Konsultasi' : 'Obat' }}
+                                        @php($badge = match ($item->type) {
+                                            'consultation' => ['jhs-badge-primary', 'bi-stethoscope', 'Konsultasi'],
+                                            'service' => ['jhs-badge-warning', 'bi-tags', 'Tindakan'],
+                                            default => ['jhs-badge-info', 'bi-capsule', 'Obat'],
+                                        })
+                                        <span class="jhs-badge {{ $badge[0] }} mt-1">
+                                            <i class="bi {{ $badge[1] }}"></i>
+                                            {{ $badge[2] }}
                                         </span>
                                     </td>
                                     <td class="text-center small">{{ $item->quantity }}</td>

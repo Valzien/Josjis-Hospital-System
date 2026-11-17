@@ -8,6 +8,7 @@ use App\Http\Controllers\Cashier;
 use App\Http\Controllers\Doctor;
 use App\Http\Controllers\GlobalSearchController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\Nurse;
 use App\Http\Controllers\Patient;
 use App\Http\Controllers\Pharmacy;
 use App\Http\Controllers\Reception;
@@ -210,6 +211,24 @@ Route::middleware(['auth', 'role:doctor,admin'])
         Route::delete('admissions/{admission}/diagnoses/{diagnosis}', [Doctor\AdmissionController::class, 'destroyDiagnosis'])->name('admissions.diagnosis.destroy');
         Route::put('admissions/{admission}/summary', [Doctor\AdmissionController::class, 'updateSummary'])->name('admissions.summary.update');
         Route::get('admissions/{admission}/summary/print', [Doctor\AdmissionController::class, 'summary'])->name('admissions.summary.print');
+    });
+
+/*
+|--------------------------------------------------------------------------
+| PERAWAT
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'role:nurse,admin'])
+    ->prefix('nurse')
+    ->name('nurse.')
+    ->group(function () {
+        Route::get('dashboard', [Nurse\DashboardController::class, 'index'])->name('dashboard');
+
+        Route::get('admissions', [Nurse\AdmissionController::class, 'index'])->name('admissions.index');
+        Route::get('admissions/create', [Nurse\AdmissionController::class, 'create'])->name('admissions.create');
+        Route::post('admissions', [Nurse\AdmissionController::class, 'store'])->name('admissions.store');
+        Route::get('admissions/{admission}', [Nurse\AdmissionController::class, 'show'])->name('admissions.show');
+        Route::post('admissions/{admission}/visits', [Nurse\AdmissionController::class, 'visit'])->name('admissions.visit');
     });
 
 /*

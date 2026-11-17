@@ -7,6 +7,7 @@ enum UserRole: string
     case Admin = 'admin';
     case Receptionist = 'receptionist';
     case Doctor = 'doctor';
+    case Nurse = 'nurse';
     case Pharmacist = 'pharmacist';
     case Cashier = 'cashier';
     case Patient = 'patient';
@@ -17,6 +18,7 @@ enum UserRole: string
             self::Admin => 'Administrator',
             self::Receptionist => 'Resepsionis',
             self::Doctor => 'Dokter',
+            self::Nurse => 'Perawat',
             self::Pharmacist => 'Apoteker',
             self::Cashier => 'Kasir',
             self::Patient => 'Pasien',
@@ -29,6 +31,7 @@ enum UserRole: string
             self::Admin => 'Admin',
             self::Receptionist => 'Resepsionis',
             self::Doctor => 'Dokter',
+            self::Nurse => 'Perawat',
             self::Pharmacist => 'Apoteker',
             self::Cashier => 'Kasir',
             self::Patient => 'Pasien',
@@ -42,6 +45,7 @@ enum UserRole: string
             self::Admin => 'admin',
             self::Receptionist => 'reception',
             self::Doctor => 'doctor',
+            self::Nurse => 'nurse',
             self::Pharmacist => 'pharmacy',
             self::Cashier => 'cashier',
             self::Patient => 'patient',
@@ -64,6 +68,7 @@ enum UserRole: string
             self::Admin => 'admin.login',
             self::Receptionist => 'reception.login',
             self::Doctor => 'doctor.login',
+            self::Nurse => 'nurse.login',
             self::Pharmacist => 'pharmacy.login',
             self::Cashier => 'cashier.login',
             self::Patient => 'login',
@@ -82,6 +87,7 @@ enum UserRole: string
             self::Admin => 'bi-shield-lock',
             self::Receptionist => 'bi-headset',
             self::Doctor => 'bi-heart-pulse',
+            self::Nurse => 'bi-person-badge',
             self::Pharmacist => 'bi-capsule',
             self::Cashier => 'bi-cash-coin',
             self::Patient => 'bi-person',
@@ -94,6 +100,7 @@ enum UserRole: string
             self::Admin => 'primary',
             self::Receptionist => 'info',
             self::Doctor => 'success',
+            self::Nurse => 'teal',
             self::Pharmacist => 'warning',
             self::Cashier => 'danger',
             self::Patient => 'secondary',
@@ -117,6 +124,7 @@ enum UserRole: string
             'admin' => self::Admin,
             'reception' => self::Receptionist,
             'doctor' => self::Doctor,
+            'nurse' => self::Nurse,
             'pharmacy' => self::Pharmacist,
             'cashier' => self::Cashier,
             'patient' => self::Patient,

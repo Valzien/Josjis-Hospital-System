@@ -55,6 +55,7 @@ class DemoSeeder extends Seeder
         $this->upsertUser('Administrator JOSJIS', 'admin@josjis.test', 'admin', $password);
 
         $receptionUser = $this->upsertUser('Rina Puspita', 'resepsionis@josjis.test', 'receptionist', $password);
+        $this->upsertUser('Nur Aisyah', 'perawat@josjis.test', 'nurse', $password);
         $this->upsertUser('Bagus Wicaksono', 'apoteker@josjis.test', 'pharmacist', $password);
         $this->upsertUser('Sinta Maharani', 'kasir@josjis.test', 'cashier', $password);
 

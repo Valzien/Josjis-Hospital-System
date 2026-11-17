@@ -77,6 +77,14 @@ return [
             'color' => 'success',
             'demo' => 'Dokter',
         ],
+        'nurse' => [
+            'role' => UserRole::Nurse,
+            'title' => 'Portal Perawat',
+            'subtitle' => 'Rawat inap, visite, dan pencatatan tanda vital pasien.',
+            'icon' => 'bi-person-badge',
+            'color' => 'teal',
+            'demo' => 'Perawat',
+        ],
         'pharmacy' => [
             'role' => UserRole::Pharmacist,
             'title' => 'Portal Apoteker',
@@ -110,6 +118,7 @@ return [
         'Admin' => ['email' => 'admin@josjis.test', 'password' => 'password'],
         'Resepsionis' => ['email' => 'resepsionis@josjis.test', 'password' => 'password'],
         'Dokter' => ['email' => 'dokter@josjis.test', 'password' => 'password'],
+        'Perawat' => ['email' => 'perawat@josjis.test', 'password' => 'password'],
         'Apoteker' => ['email' => 'apoteker@josjis.test', 'password' => 'password'],
         'Kasir' => ['email' => 'kasir@josjis.test', 'password' => 'password'],
         'Pasien' => ['email' => 'pasien@josjis.test', 'password' => 'password'],
@@ -180,6 +189,7 @@ return [
             ['role' => UserRole::Admin, 'icon' => 'bi-shield-lock', 'color' => 'primary', 'text' => 'Mengelola pengguna, master data, laporan, dan audit log sistem.'],
             ['role' => UserRole::Receptionist, 'icon' => 'bi-headset', 'color' => 'info', 'text' => 'Mendaftarkan pasien, membuat dan memanggil antrean.'],
             ['role' => UserRole::Doctor, 'icon' => 'bi-heart-pulse', 'color' => 'success', 'text' => 'Melakukan pemeriksaan, menulis diagnosis, dan membuat resep.'],
+            ['role' => UserRole::Nurse, 'icon' => 'bi-person-badge', 'color' => 'teal', 'text' => 'Merawat pasien rawat inap, mencatat visite, dan memantau tanda vital.'],
             ['role' => UserRole::Pharmacist, 'icon' => 'bi-capsule', 'color' => 'warning', 'text' => 'Memproses resep, mengelola obat, dan memantau stok.'],
             ['role' => UserRole::Patient, 'icon' => 'bi-person', 'color' => 'secondary', 'text' => 'Mengambil antrean online dan memantau riwayat pelayanan.'],
         ],
@@ -227,6 +237,10 @@ return [
             ['label' => 'Rekam Medis', 'route' => 'doctor.medical-records.index', 'icon' => 'bi-journal-medical'],
             ['label' => 'Resep', 'route' => 'doctor.prescriptions.index', 'icon' => 'bi-file-earmark-medical'],
             ['section' => 'Jadwal', 'label' => 'Jadwal Praktik', 'route' => 'doctor.schedules.index', 'icon' => 'bi-calendar-week'],
+        ],
+        UserRole::Nurse->value => [
+            ['section' => 'Utama', 'label' => 'Dashboard', 'route' => 'nurse.dashboard', 'icon' => 'bi-speedometer2'],
+            ['section' => 'Rawat Inap', 'label' => 'Pasien Rawat Inap', 'route' => 'nurse.admissions.index', 'icon' => 'bi-hospital', 'badge' => 'admissions'],
         ],
         UserRole::Pharmacist->value => [
             ['section' => 'Utama', 'label' => 'Dashboard', 'route' => 'pharmacy.dashboard', 'icon' => 'bi-speedometer2'],

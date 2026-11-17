@@ -26,6 +26,7 @@ class DemoAccountGuardTest extends TestCase
         'admin@josjis.test',
         'resepsionis@josjis.test',
         'dokter@josjis.test',
+        'perawat@josjis.test',
         'apoteker@josjis.test',
         'kasir@josjis.test',
         'pasien@josjis.test',
@@ -111,6 +112,16 @@ class DemoAccountGuardTest extends TestCase
             ->assertSee('kasir@josjis.test', false)
             ->assertDontSee('admin@josjis.test', false)
             ->assertDontSee('pasien@josjis.test', false);
+    }
+
+    public function test_portal_perawat_menampilkan_akun_demo_perawat(): void
+    {
+        config(['jhs.demo_credentials_enabled' => true]);
+
+        $this->get(route('nurse.login'))
+            ->assertOk()
+            ->assertSee('perawat@josjis.test', false)
+            ->assertDontSee('admin@josjis.test', false);
     }
 
     public function test_perintah_demo_off_mematikan_akun_demo_yang_sudah_ada(): void

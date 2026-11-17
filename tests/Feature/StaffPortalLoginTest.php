@@ -60,6 +60,18 @@ class StaffPortalLoginTest extends TestCase
         $this->assertAuthenticatedAs($cashier);
     }
 
+    public function test_perawat_dapat_login_melalui_portal_perawat(): void
+    {
+        $nurse = User::factory()->nurse()->create();
+
+        $this->post(route('nurse.login'), [
+            'email' => $nurse->email,
+            'password' => 'password',
+        ])->assertRedirect(route('nurse.dashboard'));
+
+        $this->assertAuthenticatedAs($nurse);
+    }
+
     public function test_pasien_tetap_dapat_login_melalui_portal_pasien(): void
     {
         $user = User::factory()->patient()->create();
@@ -93,6 +105,13 @@ class StaffPortalLoginTest extends TestCase
             ->assertRedirect(route('cashier.login'));
 
         $this->assertGuest();
+
+        $this->actingAs(User::factory()->nurse()->create());
+
+        $this->post(route('logout'))
+            ->assertRedirect(route('nurse.login'));
+
+        $this->assertGuest();
     }
 
     public function test_role_tidak_dapat_membuka_portal_role_lain(): void
@@ -102,6 +121,13 @@ class StaffPortalLoginTest extends TestCase
         Patient::factory()->create(['user_id' => $patientUser->id]);
 
         $this->actingAs($cashier)->get(route('reception.dashboard'))->assertForbidden();
+
+        $nurse = User::factory()->nurse()->create();
+        $this->actingAs($nurse)->get(route('reception.dashboard'))->assertForbidden();
+        $this->actingAs($nurse)->get(route('doctor.dashboard'))->assertForbidden();
+        $this->actingAs($nurse)->get(route('pharmacy.dashboard'))->assertForbidden();
+        $this->actingAs($nurse)->get(route('cashier.dashboard'))->assertForbidden();
+        $this->actingAs($nurse)->get(route('admin.dashboard'))->assertForbidden();
 
         $this->actingAs($patientUser)->get(route('cashier.dashboard'))->assertForbidden();
 

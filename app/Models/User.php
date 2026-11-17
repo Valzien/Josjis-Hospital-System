@@ -72,6 +72,11 @@ class User extends Authenticatable
         return $this->role === UserRole::Doctor;
     }
 
+    public function isNurse(): bool
+    {
+        return $this->role === UserRole::Nurse;
+    }
+
     public function isReceptionist(): bool
     {
         return $this->role === UserRole::Receptionist;

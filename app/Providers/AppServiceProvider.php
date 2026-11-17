@@ -107,7 +107,7 @@ class AppServiceProvider extends ServiceProvider
                         ->where('status', AdmissionStatus::Active->value)
                         ->where('doctor_id', $user->doctor?->id)
                         ->count()
-                    : ($user->isReceptionist() || $user->isAdmin()
+                    : ($user->isReceptionist() || $user->isNurse() || $user->isAdmin()
                         ? Admission::query()->where('status', AdmissionStatus::Active->value)->count()
                         : 0),
             ];

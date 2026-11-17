@@ -54,6 +54,11 @@ class UserFactory extends Factory
         return $this->role(UserRole::Doctor);
     }
 
+    public function nurse(): static
+    {
+        return $this->role(UserRole::Nurse);
+    }
+
     public function pharmacist(): static
     {
         return $this->role(UserRole::Pharmacist);

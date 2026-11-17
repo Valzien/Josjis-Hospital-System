@@ -21,7 +21,7 @@ class DisableDemoAccountsCommand extends Command
                             {--list : Tampilkan daftar akun demo tanpa mengubah apa pun}
                             {--purge : Hapus permanen akun demo (hanya bila tidak ada data klinis terkait)}';
 
-    protected $description = 'Matikan akun demo (admin/resepsionis/dokter/apoteker/kasir/pasien @josjis.test)';
+    protected $description = 'Matikan akun demo (admin/resepsionis/dokter/perawat/apoteker/kasir/pasien @josjis.test)';
 
     public function handle(): int
     {

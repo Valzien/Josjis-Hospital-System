@@ -33,7 +33,7 @@
             <a href="#layanan" class="adievia-nav-link">Tentang</a>
             <a href="#layanan-pasien" class="adievia-nav-link">Layanan Pasien</a>
             <a href="#dokter" class="adievia-nav-link">Dokter Spesialis</a>
-            <a href="#fasilitas" class="adievia-nav-link">Fasilitas Rawat Jalan</a>
+            <a href="#fasilitas" class="adievia-nav-link">Fasilitas Rawat Inap</a>
             <a href="#alur" class="adievia-nav-link">Alur Pasien</a>
             <a href="#kontak" class="adievia-nav-link">Kontak</a>
         </nav>
@@ -65,7 +65,7 @@
             <li class="nav-item"><a class="nav-link text-dark fw-bold" href="#layanan" data-bs-dismiss="offcanvas">Tentang Layanan</a></li>
             <li class="nav-item"><a class="nav-link text-dark fw-bold" href="#layanan-pasien" data-bs-dismiss="offcanvas">Layanan Pasien</a></li>
             <li class="nav-item"><a class="nav-link text-dark fw-bold" href="#dokter" data-bs-dismiss="offcanvas">Dokter Spesialis</a></li>
-            <li class="nav-item"><a class="nav-link text-dark fw-bold" href="#fasilitas" data-bs-dismiss="offcanvas">Fasilitas Rawat Jalan</a></li>
+            <li class="nav-item"><a class="nav-link text-dark fw-bold" href="#fasilitas" data-bs-dismiss="offcanvas">Fasilitas Rawat Inap</a></li>
             <li class="nav-item"><a class="nav-link text-dark fw-bold" href="#alur" data-bs-dismiss="offcanvas">Alur Pelayanan</a></li>
             <li class="nav-item"><a class="nav-link text-dark fw-bold" href="#kontak" data-bs-dismiss="offcanvas">Kontak &amp; Lokasi</a></li>
         </ul>
@@ -95,7 +95,7 @@
             <div class="hero-mockup-row">
                 <div class="hero-mockup-card">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="badge bg-primary bg-opacity-10 text-primary small">SIMRS Rawat Jalan</span>
+                        <span class="badge bg-primary bg-opacity-10 text-primary small">SIMRS Rawat Inap</span>
                         <span class="text-muted small">09.30 WIB</span>
                     </div>
                     <div class="fw-bold text-dark small mb-1">Papan Antrean Poliklinik</div>
@@ -166,14 +166,14 @@
                 <div class="mb-3 reveal">
                     <span class="badge border bg-white text-primary rounded-pill px-3.5 py-1.5 fw-bold shadow-xs" 
                           style="font-size: 0.76rem; letter-spacing: 0.08em; border-color: rgba(13, 110, 253, 0.25) !important;">
-                        PELAYANAN PASIEN RAWAT JALAN TERPADU
+                        PELAYANAN PASIEN RAWAT INAP TERPADU
                     </span>
                 </div>
 
                 <!-- Giant 3-Line Modern Headline (Parkinsans Font, Left Aligned) -->
                 <h1 class="jhs-caps mb-3 reveal delay-100" style="line-height: 0.94;">
                     <span class="d-block text-slate-900" style="font-size: clamp(2.3rem, 6.5vw, 4.8rem); font-weight: 800;">PELAYANAN PASIEN</span>
-                    <span class="d-block my-1" style="font-size: clamp(3rem, 10vw, 7.2rem); font-weight: 800; color: #0d6efd; letter-spacing: -0.03em;">RAWAT JALAN</span>
+                    <span class="d-block my-1" style="font-size: clamp(3rem, 10vw, 7.2rem); font-weight: 800; color: #0d6efd; letter-spacing: -0.03em;">RAWAT INAP</span>
                     <span class="d-block text-slate-900" style="font-size: clamp(2.3rem, 6.5vw, 4.8rem); font-weight: 800;">BEBAS ANTREAN PANJANG</span>
                 </h1>
 
@@ -249,11 +249,11 @@
     <div class="container py-lg-4">
         <div class="text-center mb-5 reveal">
             <span class="badge border bg-white text-primary rounded-pill px-3 py-1.5 fw-bold small mb-2 shadow-xs" style="border-color: rgba(13, 110, 253, 0.3) !important;">
-                Layanan Unggulan &middot; Rawat Jalan Terpadu
+                Layanan Unggulan &middot; Rawat Inap Terpadu
             </span>
             <h2 class="jhs-caps fw-black text-slate-900 mt-2 mb-2" style="font-size: clamp(2rem, 5vw, 3.2rem);">KEMUDAHAN PASIEN &amp; INTEGRASI LAYANAN</h2>
             <p class="text-secondary mx-auto mb-0" style="max-width: 580px;">
-                Seluruh tahapan pelayanan rawat jalan dirancang terpadu — memudahkan pasien mendaftar dan mengambil antrean mandiri, sekaligus mempercepat alur dokter, farmasi, dan kasir.
+                Seluruh tahapan pelayanan rawat inap dirancang terpadu — memudahkan pasien mendaftar dan mengambil antrean mandiri, sekaligus mempercepat alur dokter, farmasi, dan kasir.
             </p>
         </div>
 
@@ -272,7 +272,7 @@
 
                     <h3 class="h4 fw-bold text-slate-900 mb-2">Pendaftaran &amp; Antrean Mandiri</h3>
                     <p class="text-secondary small mb-4" style="line-height: 1.6;">
-                        Kemudahan mendaftar dan mengambil nomor antrean rawat jalan dari rumah tanpa perlu datang subuh untuk berdesakan di loket rumah sakit.
+                        Kemudahan mendaftar dan mengambil nomor antrean rawat inap dari rumah tanpa perlu datang subuh untuk berdesakan di loket rumah sakit.
                     </p>
 
                     <ul class="list-unstyled mb-4 flex-grow-1">
@@ -467,16 +467,16 @@
     </div>
 </section>
 
-<!-- Section: Fasilitas Rawat Jalan (NO LAB & NO RADIOLOGI) -->
+<!-- Section: Fasilitas Rawat Inap (NO LAB & NO RADIOLOGI) -->
 <section id="fasilitas" class="py-5 bg-white">
     <div class="container py-lg-4">
         <div class="text-center mb-5 reveal">
             <span class="badge border bg-white text-primary rounded-pill px-3 py-1.5 fw-bold small mb-2 shadow-xs" style="border-color: rgba(13, 110, 253, 0.3) !important;">
                 SARANA MEDIS
             </span>
-            <h2 class="jhs-caps fw-black text-slate-900 mt-2 mb-2" style="font-size: clamp(2rem, 5vw, 3.2rem);">FASILITAS PELAYANAN RAWAT JALAN</h2>
+            <h2 class="jhs-caps fw-black text-slate-900 mt-2 mb-2" style="font-size: clamp(2rem, 5vw, 3.2rem);">FASILITAS PELAYANAN RAWAT INAP</h2>
             <p class="text-secondary mx-auto mb-0" style="max-width: 520px;">
-                Sarana penunjang rawat jalan yang terhubung langsung dengan sistem antrean dan kasir.
+                Sarana penunjang rawat inap yang terhubung langsung dengan sistem antrean dan kasir.
             </p>
         </div>
 
@@ -564,7 +564,7 @@
                             <i class="bi bi-clock fs-5"></i>
                         </div>
                         <div>
-                            <div class="small text-secondary">Jam Pelayanan Rawat Jalan</div>
+                            <div class="small text-secondary">Jam Pelayanan Rawat Inap</div>
                             <div class="fw-bold text-slate-900">{{ config('jhs.contact.hours') }}</div>
                         </div>
                     </div>

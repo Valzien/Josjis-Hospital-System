@@ -1740,32 +1740,6 @@ a { text-decoration: none; }
   flex-shrink: 0;
 }
 
-/* Floating Action Button at Bottom Right (like chat icon in screenshot) */
-.adievia-fab {
-  position: fixed;
-  bottom: 1.75rem;
-  right: 1.75rem;
-  z-index: 1030;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: #0d6efd;
-  color: #ffffff !important;
-  display: grid;
-  place-items: center;
-  font-size: 1.5rem;
-  box-shadow: 0 12px 28px -4px rgba(13, 110, 253, 0.55);
-  border: 2.5px solid #ffffff;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  text-decoration: none;
-}
-
-.adievia-fab:hover {
-  transform: scale(1.1) translateY(-3px);
-  background: #0284c7;
-  box-shadow: 0 18px 36px -4px rgba(13, 110, 253, 0.65);
-}
-
 /* ==========================================================================
    INTERACTIVE BUTTON ANIMATIONS & FLOW MINI BOXES
    ========================================================================== */

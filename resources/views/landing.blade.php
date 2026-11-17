@@ -608,11 +608,6 @@
     </div>
 </footer>
 
-<!-- Floating Quick Action Button (Chat / Portal Trigger ala Adievia) -->
-<a href="{{ route('login') }}" class="adievia-fab" title="Masuk / Ambil Antrean">
-    <i class="bi bi-chat-dots-fill"></i>
-</a>
-
 <script src="{{ asset('vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
 <script src="{{ asset('js/jhs.js') }}"></script>
 

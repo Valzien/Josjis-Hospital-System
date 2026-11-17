@@ -222,7 +222,9 @@
                                                             <span class="text-muted-2">&middot; {{ $schedule->room }}</span>
                                                         @endif
                                                     </div>
-                                                    @if ($schedule->remaining_quota > 0)
+                                                    @if ($schedule->on_leave ?? false)
+                                                        <x-badge text="Dokter cuti" icon="bi-calendar-x" color="secondary" />
+                                                    @elseif ($schedule->remaining_quota > 0)
                                                         <x-badge :text="$schedule->remaining_quota.' slot tersisa'" icon="bi-check-circle-fill" color="success" />
                                                     @else
                                                         <x-badge text="Kuota penuh" icon="bi-x-circle-fill" color="danger" />

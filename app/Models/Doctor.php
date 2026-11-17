@@ -54,6 +54,11 @@ class Doctor extends Model
         return $this->hasMany(Admission::class);
     }
 
+    public function leaves(): HasMany
+    {
+        return $this->hasMany(DoctorLeave::class);
+    }
+
     /** @param  Builder<Doctor>  $query */
     #[Scope]
     protected function active(Builder $query): void
@@ -98,8 +103,17 @@ class Doctor extends Model
         return $this->schedules()->active()->where('day', now()->dayOfWeek)->first();
     }
 
+    public function isOnLeave(?string $date = null): bool
+    {
+        $date ??= now()->toDateString();
+
+        return $this->leaves()->onDate($date)->exists();
+    }
+
     public function isOnDuty(): bool
     {
-        return $this->isActive() && $this->scheduleForToday() !== null;
+        return $this->isActive()
+            && ! $this->isOnLeave()
+            && $this->scheduleForToday() !== null;
     }
 }

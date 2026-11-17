@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Patient\BookAppointmentRequest;
 use App\Models\Appointment;
 use App\Models\Doctor;
+use App\Models\DoctorLeave;
 use App\Models\DoctorSchedule;
 use App\Models\Patient;
 use App\Services\AppointmentService;
@@ -62,18 +63,24 @@ class AppointmentController extends Controller
         $date = $this->resolveDate($request->query('date'));
         $doctorId = $request->integer('doctor_id') ?: null;
         $isToday = $date->isToday();
+        $onLeaveDoctorIds = DoctorLeave::query()
+            ->onDate($date)
+            ->pluck('doctor_id')
+            ->all();
 
         if ($isToday) {
             $schedules = DoctorSchedule::query()
                 ->with('doctor')
                 ->active()
                 ->forDay($date)
+                ->whereNotIn('doctor_id', $onLeaveDoctorIds)
                 ->when($doctorId, fn ($q) => $q->where('doctor_id', $doctorId))
                 ->orderBy('start_time')
                 ->get();
 
             $doctors = Doctor::query()
                 ->active()
+                ->whereNotIn('id', $onLeaveDoctorIds)
                 ->whereHas('schedules', fn ($q) => $q->active()->forDay($date))
                 ->withCount(['schedules' => fn ($q) => $q->active()->forDay($date)])
                 ->orderBy('name')
@@ -86,9 +93,10 @@ class AppointmentController extends Controller
                 ->when($doctorId, fn ($q) => $q->where('doctor_id', $doctorId))
                 ->orderBy('start_time')
                 ->get()
-                ->map(function (DoctorSchedule $schedule) use ($date) {
+                ->map(function (DoctorSchedule $schedule) use ($date, $onLeaveDoctorIds) {
                     $schedule->slots = $this->appointments->availableSlots($schedule, $date);
                     $schedule->remaining_quota = $this->appointments->remainingQuota($schedule, $date);
+                    $schedule->on_leave = in_array($schedule->doctor_id, $onLeaveDoctorIds, true);
 
                     return $schedule;
                 })

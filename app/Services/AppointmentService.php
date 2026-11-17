@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\ActiveStatus;
 use App\Enums\AppointmentStatus;
 use App\Models\Appointment;
+use App\Models\DoctorLeave;
 use App\Models\DoctorSchedule;
 use App\Models\Patient;
 use App\Models\Queue;
@@ -55,6 +56,8 @@ class AppointmentService
             return [];
         }
 
+        $onLeave = $this->isDoctorOnLeave($schedule->doctor_id, $day);
+
         $taken = Appointment::query()
             ->where('doctor_id', $schedule->doctor_id)
             ->whereDate('appointment_date', $day->toDateString())
@@ -71,6 +74,7 @@ class AppointmentService
         while ($cursor->lt($end)) {
             $time = $cursor->format('H:i');
             $reason = match (true) {
+                $onLeave => 'Dokter cuti',
                 in_array($time, $taken, true) => 'Sudah dibooking',
                 $cursor->lt(now()) => 'Waktu sudah lewat',
                 $quotaFull => 'Kuota sesi penuh',
@@ -155,6 +159,10 @@ class AppointmentService
 
         if ($day->gt($this->latestBookableDate())) {
             throw new RuntimeException('Janji temu hanya dapat dibuat maksimal '.$this->bookingWindowDays().' hari ke depan.');
+        }
+
+        if ($this->isDoctorOnLeave($schedule->doctor_id, $day)) {
+            throw new RuntimeException('Dokter tidak praktik (cuti) pada tanggal tersebut. Silakan pilih tanggal lain.');
         }
 
         $slot = Carbon::parse($day->toDateString().' '.$time);
@@ -278,5 +286,16 @@ class AppointmentService
     private function slotKey(int $doctorId, string $date, string $time): string
     {
         return $doctorId.'|'.$date.'|'.substr($time, 0, 5).':00';
+    }
+
+    /** Apakah dokter sedang cuti pada tanggal tertentu. */
+    public function isDoctorOnLeave(int $doctorId, CarbonInterface|string $date): bool
+    {
+        $day = $date instanceof CarbonInterface ? $date->toDateString() : Carbon::parse($date)->toDateString();
+
+        return DoctorLeave::query()
+            ->forDoctor($doctorId)
+            ->onDate($day)
+            ->exists();
     }
 }

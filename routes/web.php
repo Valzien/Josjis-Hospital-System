@@ -92,6 +92,9 @@ Route::middleware(['auth', 'role:admin'])
         Route::resource('patients', Admin\PatientController::class);
 
         Route::resource('schedules', Admin\ScheduleController::class);
+        Route::resource('leaves', Admin\DoctorLeaveController::class)
+            ->only(['index', 'store', 'destroy'])
+            ->parameters(['leaves' => 'leave']);
 
         Route::resource('services', Admin\ServiceController::class);
         Route::put('services/{service}/status', [Admin\ServiceController::class, 'toggleStatus'])->name('services.status');
@@ -196,6 +199,8 @@ Route::middleware(['auth', 'role:doctor,admin'])
         Route::get('prescriptions/{prescription}/print', [Doctor\PrescriptionController::class, 'print'])->name('prescriptions.print');
 
         Route::get('schedules', [Doctor\ScheduleController::class, 'index'])->name('schedules.index');
+        Route::post('leaves', [Doctor\ScheduleController::class, 'storeLeave'])->name('leaves.store');
+        Route::delete('leaves/{leave}', [Doctor\ScheduleController::class, 'destroyLeave'])->name('leaves.destroy');
 
         Route::get('admissions', [Doctor\AdmissionController::class, 'index'])->name('admissions.index');
         Route::get('admissions/{admission}', [Doctor\AdmissionController::class, 'show'])->name('admissions.show');

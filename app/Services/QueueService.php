@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\AppointmentStatus;
 use App\Enums\QueueStatus;
+use App\Models\DoctorLeave;
 use App\Models\DoctorSchedule;
 use App\Models\Patient;
 use App\Models\Queue;
@@ -229,6 +230,10 @@ class QueueService
 
         if ($schedule->day?->value !== now()->dayOfWeek) {
             throw new RuntimeException("Jadwal ini hanya berlaku pada hari {$schedule->dayLabel()}.");
+        }
+
+        if (DoctorLeave::query()->forDoctor($schedule->doctor_id)->onDate(now())->exists()) {
+            throw new RuntimeException('Dokter tidak praktik (cuti) hari ini. Silakan pilih dokter atau tanggal lain.');
         }
 
         $current = now()->format('H:i:s');

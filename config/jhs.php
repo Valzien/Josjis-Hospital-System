@@ -200,6 +200,7 @@ return [
             ['label' => 'Resepsionis', 'route' => 'admin.receptionists.index', 'icon' => 'bi-headset'],
             ['label' => 'Pasien', 'route' => 'admin.patients.index', 'icon' => 'bi-person-vcard'],
             ['label' => 'Jadwal Dokter', 'route' => 'admin.schedules.index', 'icon' => 'bi-calendar-week'],
+            ['label' => 'Cuti Dokter', 'route' => 'admin.leaves.index', 'icon' => 'bi-calendar-x'],
             ['label' => 'Tarif & Tindakan', 'route' => 'admin.services.index', 'icon' => 'bi-tags'],
             ['label' => 'Kamar & Rawat Inap', 'route' => 'admin.rooms.index', 'icon' => 'bi-hospital'],
             ['section' => 'Monitoring', 'label' => 'Laporan', 'route' => 'admin.reports.index', 'icon' => 'bi-graph-up-arrow'],

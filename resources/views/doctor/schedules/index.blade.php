@@ -63,4 +63,90 @@
             </table>
         </div>
     </x-card>
+
+    <div class="row g-3 mt-1">
+        <div class="col-xl-7">
+            <x-card title="Tanggal Cuti" icon="bi-calendar-x"
+                    subtitle="{{ $leaves->count() }} tanggal cuti mendatang">
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Tanggal</th>
+                                <th>Keterangan</th>
+                                <th class="text-center">Janji Temu</th>
+                                <th class="text-end">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($leaves as $leave)
+                                @php $booked = (int) ($bookedCounts[$leave->date->toDateString()] ?? 0); @endphp
+                                <tr>
+                                    <td class="small text-nowrap">
+                                        <div class="fw-semibold">{{ $leave->date->translatedFormat('d F Y') }}</div>
+                                        <div class="fs-7 text-muted-2">{{ $leave->date->translatedFormat('l') }}</div>
+                                    </td>
+                                    <td class="small">{{ $leave->reason ?? '-' }}</td>
+                                    <td class="text-center">
+                                        @if ($booked > 0)
+                                            <x-badge :text="$booked.' janji'" icon="bi-exclamation-triangle-fill" color="warning" />
+                                        @else
+                                            <span class="text-muted-2 small">-</span>
+                                        @endif
+                                    </td>
+                                    <td class="text-end">
+                                        <form method="POST" action="{{ route('doctor.leaves.destroy', $leave) }}"
+                                              data-confirm-submit data-confirm-title="Batalkan Cuti"
+                                              data-confirm-message="Batalkan cuti {{ $leave->date->translatedFormat('d F Y') }}?"
+                                              data-confirm-variant="danger">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-sm btn-light border" title="Batalkan cuti">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="4">
+                                        <x-empty-state icon="bi-calendar-x" title="Belum ada tanggal cuti"
+                                                       text="Tandai tanggal tidak praktik pada formulir di samping." />
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </x-card>
+        </div>
+
+        <div class="col-xl-5">
+            <x-card title="Tandai Cuti" icon="bi-calendar-plus"
+                    subtitle="Slot booking pada tanggal cuti otomatis ditutup.">
+                <form method="POST" action="{{ route('doctor.leaves.store') }}">
+                    @csrf
+                    <div class="mb-3">
+                        <label class="form-label" for="leave_date">Tanggal <span class="text-danger">*</span></label>
+                        <input type="date" name="date" id="leave_date" required
+                               min="{{ now()->toDateString() }}"
+                               value="{{ old('date') }}"
+                               class="form-control form-control-sm @error('date') is-invalid @enderror">
+                        @error('date')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="leave_reason">Keterangan</label>
+                        <input type="text" name="reason" id="leave_reason" maxlength="255"
+                               value="{{ old('reason') }}"
+                               class="form-control form-control-sm @error('reason') is-invalid @enderror"
+                               placeholder="Contoh: Cuti tahunan">
+                        @error('reason')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm w-100">
+                        <i class="bi bi-check-lg me-1"></i>Simpan Cuti
+                    </button>
+                </form>
+            </x-card>
+        </div>
+    </div>
 @endsection

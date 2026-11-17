@@ -78,8 +78,8 @@
             </div>
         </div>
 
-        <button type="submit" class="btn btn-primary w-100 py-2 mt-4">
-            <i class="bi bi-person-plus me-2"></i>Buat Akun
+        <button type="submit" class="adievia-btn-pill w-100 py-2.5 mt-4 shadow-xs justify-content-center text-center jhs-btn-interactive border-0" style="font-size: 0.92rem;">
+            <i class="bi bi-person-plus me-2 jhs-btn-icon"></i>Buat Akun
         </button>
     </form>
 

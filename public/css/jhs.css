@@ -1,7 +1,10 @@
 /* ==========================================================================
    JOSJIS Hospital System (JHS) — Design System
    Tema: modern hospital management system (desktop-first, responsive)
+   Typography Stack: Adievia (Parkinsans + Inter Tight + Inter)
    ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Inter+Tight:ital,wght@0,300..900;1,300..900&family=Parkinsans:wght@300..800&display=swap');
 
 :root {
   --jhs-primary: #0d6efd;
@@ -36,16 +39,24 @@
   --jhs-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.08);
   --jhs-shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08);
 
-  --jhs-font: "Inter", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  /* Exact typography stack from adievia.co.id */
+  --jhs-font: 'Parkinsans', 'Inter Tight', 'Inter', system-ui, -apple-system, sans-serif;
+  --jhs-font-display: 'Parkinsans', 'Inter Tight', system-ui, -apple-system, sans-serif;
 }
 
 /* ---------- Base ---------- */
-body {
+html, body {
   font-family: var(--jhs-font);
+  font-feature-settings: "cv01", "cv02", "cv03", "cv04", "ss01", "ss02", "ss03";
   background-color: var(--jhs-body-bg);
   color: var(--jhs-text);
   font-size: 0.925rem;
   -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--jhs-font-display);
+  font-feature-settings: "ss01", "ss03", "cv01";
 }
 
 a { text-decoration: none; }
@@ -1193,3 +1204,825 @@ a { text-decoration: none; }
 
 .min-w-0 { min-width: 0; }
 .text-nowrap-2 { white-space: nowrap; }
+
+/* ==========================================================================
+   ADIEVIA THEME ENHANCEMENTS — White & Blue Medical Theme
+   ========================================================================== */
+
+@keyframes ecg-flow {
+  0% { stroke-dashoffset: 800; opacity: 0.3; }
+  50% { opacity: 0.9; }
+  100% { stroke-dashoffset: 0; opacity: 0.3; }
+}
+
+@keyframes pulse-live {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.6); opacity: 0.4; }
+}
+
+@keyframes marquee-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes float-gentle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+/* Gradient text */
+.text-gradient-blue {
+  background: linear-gradient(135deg, #0d6efd 0%, #0284c7 70%, #2563eb 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Caps typography (Adievia style: Parkinsans + Inter Tight) */
+.jhs-caps, .caps {
+  font-family: var(--jhs-font-display);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -0.015em;
+  line-height: 0.94;
+  font-feature-settings: "ss01", "ss03", "cv01";
+}
+
+/* Hero Section */
+.jhs-hero-modern {
+  background:
+    radial-gradient(1000px 500px at 50% -10%, rgba(13, 110, 253, 0.08) 0%, transparent 70%),
+    radial-gradient(600px 300px at 85% 30%, rgba(2, 132, 199, 0.05) 0%, transparent 60%),
+    #ffffff;
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid var(--jhs-border);
+}
+
+.jhs-hero-grid-bg {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(to right, rgba(226, 232, 240, 0.45) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(226, 232, 240, 0.45) 1px, transparent 1px);
+  background-size: 36px 36px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, #000 30%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, #000 30%, transparent 80%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.jhs-ecg-canvas {
+  position: absolute;
+  top: 15%;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 100px;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.55;
+}
+
+.jhs-ecg-path {
+  stroke-dasharray: 800;
+  stroke-dashoffset: 800;
+  animation: ecg-flow 8s linear infinite;
+}
+
+/* Live Status Badge */
+.jhs-badge-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #ffffff;
+  border: 1px solid rgba(13, 110, 253, 0.25);
+  color: var(--jhs-text);
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.45rem 1rem;
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(13, 110, 253, 0.06);
+}
+
+.jhs-live-dot {
+  width: 8px;
+  height: 8px;
+  background-color: #10b981;
+  border-radius: 50%;
+  display: inline-block;
+  position: relative;
+}
+
+.jhs-live-dot::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background-color: rgba(16, 185, 129, 0.4);
+  animation: pulse-live 2s infinite ease-out;
+}
+
+/* Adievia-Style Door Cards (Pintu Fasilitas) */
+.jhs-door-card {
+  background: #ffffff;
+  border: 1px solid var(--jhs-border);
+  border-radius: 1.25rem;
+  padding: 2.25rem 2rem;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.03);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.jhs-door-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #0d6efd, #0284c7);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.jhs-door-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(13, 110, 253, 0.4);
+  box-shadow: 0 20px 35px -10px rgba(13, 110, 253, 0.12), 0 0 0 1px rgba(13, 110, 253, 0.15);
+}
+
+.jhs-door-card:hover::before {
+  opacity: 1;
+}
+
+.jhs-door-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: rgba(13, 110, 253, 0.08);
+  color: #0d6efd;
+  display: grid;
+  place-items: center;
+  font-size: 1.6rem;
+  transition: transform 0.25s ease, background-color 0.25s ease, color 0.25s ease;
+}
+
+/* ==========================================================================
+   ADIEVIA FLOATING PILL NAVBAR, HERO REEL & SCROLL REVEAL
+   ========================================================================== */
+
+/* Floating Navbar (Adievia Pill Style) */
+.adievia-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1040;
+  padding: 1.15rem 1.25rem 0;
+  pointer-events: none;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.adievia-navbar {
+  pointer-events: auto;
+  max-width: 1120px;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(13, 110, 253, 0.12);
+  border-radius: 9999px;
+  padding: 0.5rem 1.25rem;
+  box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.8) inset;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.adievia-header.is-scrolled .adievia-navbar {
+  max-width: 1040px;
+  padding: 0.42rem 1.1rem;
+  box-shadow: 0 16px 36px -12px rgba(13, 110, 253, 0.22), 0 0 0 1px rgba(13, 110, 253, 0.18);
+  background: rgba(255, 255, 255, 0.98);
+}
+
+/* Logo Animation (saat mau diinteraksi & saat diklik) */
+.adievia-logo-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  padding: 4px;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), filter 0.25s ease;
+  text-decoration: none;
+  outline: none;
+}
+.adievia-logo-link:hover {
+  transform: scale(1.1) rotate(-3deg);
+  filter: drop-shadow(0 4px 12px rgba(13, 110, 253, 0.3));
+}
+.adievia-logo-link:active {
+  transform: scale(0.92);
+  transition-duration: 0.08s;
+}
+
+/* Vertical Divider next to Logo (Sekat ala Adievia) */
+.adievia-logo-divider {
+  width: 1px;
+  height: 22px;
+  background-color: #cbd5e1;
+  margin: 0 0.65rem 0 0.35rem;
+  flex-shrink: 0;
+}
+
+/* Nav Links - Modern Friendly Pill with Interactive Hover & Press Animation */
+.adievia-nav-link {
+  font-family: var(--jhs-font-display);
+  font-size: 0.84rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #334155;
+  padding: 0.42rem 0.95rem;
+  border-radius: 9999px;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Hover: Mau diinteraksi (angkat, glow biru halus, warna biru) */
+.adievia-nav-link:hover {
+  color: #0d6efd;
+  background-color: rgba(13, 110, 253, 0.09);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.14);
+}
+
+/* Active: Sedang diinteraksi (pantulan klik tactile) */
+.adievia-nav-link:active {
+  transform: scale(0.93) translateY(0);
+  background-color: rgba(13, 110, 253, 0.18);
+  color: #0a58ca;
+  transition-duration: 0.08s;
+}
+
+/* CTA Pill Button (Adievia Blue Pill) */
+.adievia-btn-pill {
+  font-family: var(--jhs-font-display);
+  background: #0d6efd;
+  color: #ffffff !important;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  padding: 0.52rem 1.45rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(13, 110, 253, 0.25);
+  transition: all 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  text-decoration: none;
+  box-shadow: 0 4px 14px rgba(13, 110, 253, 0.3);
+  cursor: pointer;
+}
+
+/* Hover: Mau diinteraksi */
+.adievia-btn-pill:hover {
+  background: #0b5ed7;
+  color: #ffffff !important;
+  box-shadow: 0 8px 24px rgba(13, 110, 253, 0.42);
+  transform: translateY(-2px) scale(1.02);
+}
+
+/* Active: Sedang diinteraksi */
+.adievia-btn-pill:active {
+  transform: scale(0.95) translateY(0);
+  box-shadow: 0 2px 8px rgba(13, 110, 253, 0.25);
+  transition-duration: 0.08s;
+}
+
+.adievia-btn-pill-outline {
+  font-family: var(--jhs-font-display);
+  background-color: #ffffff !important;
+  color: #0d6efd !important;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  padding: 0.52rem 1.45rem;
+  border-radius: 9999px;
+  border: 1.5px solid rgba(13, 110, 253, 0.35);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  text-decoration: none;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+  cursor: pointer;
+}
+
+.adievia-btn-pill-outline,
+.adievia-btn-pill-outline span,
+.adievia-btn-pill-outline i {
+  color: #0d6efd !important;
+}
+
+.adievia-btn-pill-outline:hover,
+.adievia-btn-pill-outline:focus,
+.adievia-btn-pill-outline:focus-visible {
+  background-color: #eff6ff !important;
+  border-color: #0d6efd !important;
+  color: #0b5ed7 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(13, 110, 253, 0.16);
+}
+
+.adievia-btn-pill-outline:hover span,
+.adievia-btn-pill-outline:hover i,
+.adievia-btn-pill-outline:focus span,
+.adievia-btn-pill-outline:focus i {
+  color: #0b5ed7 !important;
+}
+
+.adievia-btn-pill-outline:active {
+  background-color: #dbeafe !important;
+  color: #0a58ca !important;
+  transform: scale(0.96) translateY(0);
+  transition-duration: 0.08s;
+}
+
+.adievia-btn-pill-outline:active span,
+.adievia-btn-pill-outline:active i {
+  color: #0a58ca !important;
+}
+
+.adievia-btn-pill-blue {
+  font-family: var(--jhs-font-display);
+  background: #0d6efd;
+  color: #ffffff !important;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  padding: 0.52rem 1.45rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(13, 110, 253, 0.25);
+  transition: all 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  text-decoration: none;
+  box-shadow: 0 4px 14px rgba(13, 110, 253, 0.3);
+}
+
+.adievia-btn-pill-blue:hover {
+  background: #0b5ed7;
+  color: #ffffff !important;
+  box-shadow: 0 8px 24px rgba(13, 110, 253, 0.42);
+  transform: translateY(-2px) scale(1.02);
+}
+
+.adievia-btn-pill-blue:active {
+  transform: scale(0.95) translateY(0);
+  box-shadow: 0 2px 8px rgba(13, 110, 253, 0.25);
+  transition-duration: 0.08s;
+}
+
+/* ==========================================================================
+   HERO TRANSPARENT HOSPITAL VIDEO-SLIDESHOW (Cinematic Pan & Motion)
+   ========================================================================== */
+.jhs-hero-slider-bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.jhs-hero-slide {
+  position: absolute;
+  inset: -25px;
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  opacity: 0;
+  transform: scale(1.1) translate3d(0, 0, 0);
+  animation: jhsHospitalVideoSlide 18s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+  will-change: opacity, transform;
+}
+
+.jhs-hero-slide:nth-child(1) {
+  animation-delay: 0s;
+}
+.jhs-hero-slide:nth-child(2) {
+  animation-delay: 6s;
+}
+.jhs-hero-slide:nth-child(3) {
+  animation-delay: 12s;
+}
+
+@keyframes jhsHospitalVideoSlide {
+  0% {
+    opacity: 0;
+    transform: scale(1.08) translate3d(0, 0, 0);
+  }
+  6% {
+    opacity: 0.55; /* Clear, vivid hospital atmosphere */
+  }
+  28% {
+    opacity: 0.55;
+    transform: scale(1.02) translate3d(-16px, -8px, 0);
+  }
+  35% {
+    opacity: 0;
+    transform: scale(1) translate3d(-22px, -12px, 0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.08) translate3d(0, 0, 0);
+  }
+}
+
+/* Gradient overlay: Crisp text readability on left, clearer hospital visual on right */
+.jhs-hero-slide-overlay {
+  position: absolute;
+  inset: 0;
+  background: 
+    linear-gradient(90deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.88) 46%, rgba(255, 255, 255, 0.28) 78%, rgba(255, 255, 255, 0.55) 100%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, transparent 28%, rgba(255, 255, 255, 0.88) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Outpatient Live Status Card on the Right of Hero */
+.jhs-hero-preview-card {
+  border: 1px solid rgba(13, 110, 253, 0.16) !important;
+  box-shadow: 0 20px 45px -12px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.8) inset !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  background: rgba(255, 255, 255, 0.94);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+}
+
+.jhs-hero-preview-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 26px 55px -12px rgba(13, 110, 253, 0.18), 0 0 0 1px rgba(13, 110, 253, 0.2) inset !important;
+}
+
+/* Scroll Reveal Animations (Adievia Style) */
+.reveal {
+  opacity: 0;
+  transform: translateY(34px);
+  transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1), transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.delay-100 { transition-delay: 100ms; }
+.delay-150 { transition-delay: 150ms; }
+.delay-200 { transition-delay: 200ms; }
+.delay-250 { transition-delay: 250ms; }
+.delay-300 { transition-delay: 300ms; }
+.delay-400 { transition-delay: 400ms; }
+
+/* Tilted Floating Mockups in Hero Background (Adievia Signature) */
+.hero-mockup-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.28;
+  mask-image: radial-gradient(ellipse 75% 65% at 50% 35%, #000 30%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse 75% 65% at 50% 35%, #000 30%, transparent 80%);
+}
+
+.hero-mockup-reel {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-6deg);
+  width: 140vw;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.hero-mockup-row {
+  display: flex;
+  gap: 1.5rem;
+  white-space: nowrap;
+}
+
+.hero-mockup-card {
+  width: 320px;
+  background: #ffffff;
+  border: 1px solid rgba(13, 110, 253, 0.22);
+  border-radius: 1rem;
+  padding: 1.15rem;
+  box-shadow: 0 16px 36px -10px rgba(15, 23, 42, 0.12);
+  flex-shrink: 0;
+}
+
+/* Floating Action Button at Bottom Right (like chat icon in screenshot) */
+.adievia-fab {
+  position: fixed;
+  bottom: 1.75rem;
+  right: 1.75rem;
+  z-index: 1030;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #0d6efd;
+  color: #ffffff !important;
+  display: grid;
+  place-items: center;
+  font-size: 1.5rem;
+  box-shadow: 0 12px 28px -4px rgba(13, 110, 253, 0.55);
+  border: 2.5px solid #ffffff;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  text-decoration: none;
+}
+
+.adievia-fab:hover {
+  transform: scale(1.1) translateY(-3px);
+  background: #0284c7;
+  box-shadow: 0 18px 36px -4px rgba(13, 110, 253, 0.65);
+}
+
+/* ==========================================================================
+   INTERACTIVE BUTTON ANIMATIONS & FLOW MINI BOXES
+   ========================================================================== */
+
+/* Interactive Button Hover Animations (Arrow & Icon Motion) */
+.jhs-btn-interactive {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.jhs-btn-interactive .jhs-btn-arrow {
+  display: inline-block;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.jhs-btn-interactive:hover .jhs-btn-arrow {
+  transform: translateX(4px);
+}
+
+.jhs-btn-interactive .jhs-btn-icon {
+  display: inline-block;
+  font-size: 1.05em;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.jhs-btn-interactive:hover .jhs-btn-icon {
+  transform: scale(1.15) translateX(-1px);
+}
+
+.jhs-btn-interactive:active {
+  transform: scale(0.96) translateY(0);
+}
+
+/* Flow Step Box & Icon Badges (Pemeriksaan Dokter & Farmasi Cepat) */
+.jhs-flow-step-box,
+.jhs-flow-mini-box {
+  padding: 0.95rem 1rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  transition: all 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.02);
+}
+
+.jhs-flow-step-box:hover,
+.jhs-flow-mini-box:hover {
+  background: #ffffff;
+  border-color: rgba(13, 110, 253, 0.35);
+  box-shadow: 0 8px 22px -4px rgba(13, 110, 253, 0.1);
+  transform: translateY(-2px);
+}
+
+.jhs-flow-icon-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.jhs-flow-step-box:hover .jhs-flow-icon-badge {
+  transform: scale(1.1);
+}
+
+/* Secondary Ghost Pill Button (Adievia Style) */
+.adievia-btn-pill-ghost {
+  font-family: var(--jhs-font-display);
+  background-color: #ffffff;
+  color: #475569 !important;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.52rem 1.35rem;
+  border-radius: 9999px;
+  border: 1.5px solid #e2e8f0;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  text-decoration: none;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
+  cursor: pointer;
+}
+
+.adievia-btn-pill-ghost:hover {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+  color: #0f172a !important;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+  transform: translateY(-2px);
+}
+
+.adievia-btn-pill-ghost:active {
+  background-color: #f1f5f9;
+  transform: scale(0.96) translateY(0);
+}
+
+/* Marquee / Pita Berjalan */
+.jhs-marquee-wrap {
+  width: 100%;
+  overflow: hidden;
+  background: #ffffff;
+  border-top: 1px solid var(--jhs-border);
+  border-bottom: 1px solid var(--jhs-border);
+  padding: 0.85rem 0;
+  mask-image: linear-gradient(to right, transparent 0%, #000 8%, #000 92%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 8%, #000 92%, transparent 100%);
+  display: flex;
+}
+
+.jhs-marquee-track {
+  display: flex;
+  align-items: center;
+  gap: 2.5rem;
+  white-space: nowrap;
+  animation: marquee-scroll 32s linear infinite;
+  will-change: transform;
+}
+
+.jhs-marquee-track:hover {
+  animation-play-state: paused;
+}
+
+.jhs-marquee-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--jhs-text-muted);
+}
+
+.jhs-marquee-item i {
+  color: #0d6efd;
+  font-size: 0.75rem;
+}
+
+/* Adievia-Style Foundation Feature Cards */
+.jhs-card-adievia {
+  background: #ffffff;
+  border: 1px solid var(--jhs-border);
+  border-radius: 1rem;
+  padding: 1.65rem 1.5rem;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  height: 100%;
+}
+
+.jhs-card-adievia:hover {
+  transform: translateY(-4px);
+  border-color: rgba(13, 110, 253, 0.35);
+  box-shadow: 0 12px 24px -6px rgba(13, 110, 253, 0.08);
+}
+
+.jhs-card-adievia .card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(13, 110, 253, 0.07);
+  color: #0d6efd;
+  display: grid;
+  place-items: center;
+  font-size: 1.25rem;
+  margin-bottom: 1.15rem;
+  transition: all 0.2s ease;
+}
+
+.jhs-card-adievia:hover .card-icon {
+  background: #0d6efd;
+  color: #ffffff;
+}
+
+/* Facility Card */
+.jhs-facility-card {
+  background: #ffffff;
+  border: 1px solid var(--jhs-border);
+  border-radius: 0.85rem;
+  padding: 1.25rem 1rem;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.jhs-facility-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(13, 110, 253, 0.4);
+  box-shadow: 0 8px 20px -4px rgba(13, 110, 253, 0.1);
+}
+
+.jhs-facility-card .facility-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: rgba(13, 110, 253, 0.08);
+  color: #0d6efd;
+  display: grid;
+  place-items: center;
+  font-size: 1.3rem;
+  margin: 0 auto 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.jhs-facility-card:hover .facility-icon {
+  background: #0d6efd;
+  color: #ffffff;
+}
+
+/* Enhanced Auth Styling */
+.jhs-auth-adievia-card {
+  background: #ffffff;
+  border: 1px solid rgba(13, 110, 253, 0.2);
+  border-radius: 1.25rem;
+  padding: 2.25rem 2rem;
+  box-shadow: 0 20px 45px -12px rgba(13, 110, 253, 0.12), 0 0 0 1px rgba(13, 110, 253, 0.06);
+  position: relative;
+  overflow: hidden;
+}
+
+.jhs-auth-adievia-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #0d6efd, #0284c7);
+}
+
+.jhs-role-pill {
+  border: 1px solid var(--jhs-border);
+  background: #ffffff;
+  color: var(--jhs-text-muted);
+  border-radius: 999px;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  text-decoration: none;
+}
+
+.jhs-role-pill:hover,
+.jhs-role-pill.active {
+  background: #0d6efd;
+  color: #ffffff;
+  border-color: #0d6efd;
+  box-shadow: 0 4px 10px rgba(13, 110, 253, 0.25);
+}
+

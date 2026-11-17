@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 #[Fillable([
-    'medicine_id', 'type', 'quantity', 'stock_before', 'stock_after',
+    'medicine_id', 'batch_id', 'type', 'quantity', 'stock_before', 'stock_after',
     'reference_type', 'reference_id', 'notes', 'user_id',
 ])]
 class MedicineTransaction extends Model
@@ -30,6 +30,11 @@ class MedicineTransaction extends Model
     public function medicine(): BelongsTo
     {
         return $this->belongsTo(Medicine::class);
+    }
+
+    public function batch(): BelongsTo
+    {
+        return $this->belongsTo(MedicineBatch::class);
     }
 
     public function user(): BelongsTo
@@ -81,6 +86,7 @@ class MedicineTransaction extends Model
     {
         return match ($this->reference_type) {
             Prescription::class => 'Resep '.$this->reference?->code,
+            'medicine_batch' => 'Batch '.$this->batch?->batch_number,
             'manual' => 'Penyesuaian manual',
             default => 'Lainnya',
         };

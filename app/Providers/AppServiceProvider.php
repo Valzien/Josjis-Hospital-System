@@ -12,6 +12,7 @@ use App\Models\Appointment;
 use App\Models\DoctorSchedule;
 use App\Models\Invoice;
 use App\Models\Medicine;
+use App\Models\MedicineBatch;
 use App\Models\Patient;
 use App\Models\Prescription;
 use App\Models\Queue;
@@ -91,6 +92,9 @@ class AppServiceProvider extends ServiceProvider
                     : 0,
                 'low_stock' => $user->isPharmacist()
                     ? Medicine::query()->active()->lowStock()->count()
+                    : 0,
+                'expired' => $user->isPharmacist() || $user->isAdmin()
+                    ? MedicineBatch::query()->expired()->count()
                     : 0,
                 'unpaid' => $user->isCashier() || $user->isAdmin()
                     ? Invoice::query()->whereIn('status', InvoiceStatus::openValues())->count()

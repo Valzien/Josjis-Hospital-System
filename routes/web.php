@@ -238,6 +238,9 @@ Route::middleware(['auth', 'role:pharmacist,admin'])
         Route::post('stock/{medicine}/out', [Pharmacy\StockController::class, 'stockOut'])->name('stock.out');
         Route::post('stock/{medicine}/adjust', [Pharmacy\StockController::class, 'adjust'])->name('stock.adjust');
 
+        Route::get('batches', [Pharmacy\BatchController::class, 'index'])->name('batches.index');
+        Route::delete('batches/{batch}/dispose', [Pharmacy\BatchController::class, 'dispose'])->name('batches.dispose');
+
         Route::get('transactions', [Pharmacy\TransactionController::class, 'index'])->name('transactions.index');
     });
 

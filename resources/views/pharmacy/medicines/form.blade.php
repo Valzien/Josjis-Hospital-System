@@ -105,6 +105,14 @@
                                 <div class="form-text">Dicatat sebagai transaksi barang masuk.</div>
                                 @error('stock')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
+                            <div class="col-12">
+                                <label class="form-label" for="batch_number">Nomor Batch Awal</label>
+                                <input type="text" name="batch_number" id="batch_number" maxlength="80"
+                                       value="{{ old('batch_number') }}"
+                                       class="form-control @error('batch_number') is-invalid @enderror"
+                                       placeholder="Opsional, otomatis AWAL-KODEOBAT">
+                                @error('batch_number')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
                         @endif
 
                         <div class="col-12">

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Pharmacy\AdjustStockRequest;
 use App\Http\Requests\Pharmacy\StockRequest;
 use App\Models\Medicine;
+use App\Models\MedicineBatch;
 use App\Services\AuditLogger;
 use App\Services\MedicineService;
 use Illuminate\Http\RedirectResponse;
@@ -38,10 +39,17 @@ class StockController extends Controller
             'categories' => Medicine::categoryOptions(),
             'filters' => $request->only('q', 'category', 'low_stock', 'out_of_stock'),
             'lowStock' => $this->medicines->lowStockMedicines(10),
+            'expiredBatches' => MedicineBatch::query()
+                ->expired()
+                ->with('medicine')
+                ->orderBy('expiry_date')
+                ->limit(5)
+                ->get(),
             'stats' => [
                 'total_types' => Medicine::query()->active()->count(),
                 'low_stock' => $this->medicines->lowStockCount(),
                 'out_of_stock' => Medicine::query()->active()->where('stock', '<=', 0)->count(),
+                'expired_qty' => $this->medicines->expiredBatchQuantity(),
                 'value' => 'Rp '.number_format($this->medicines->inventoryValue(), 0, ',', '.'),
             ],
         ]);
@@ -55,6 +63,8 @@ class StockController extends Controller
                 $request->integer('quantity'),
                 $request->input('notes') ?: 'Barang masuk',
                 auth()->id(),
+                $request->string('batch_number')->trim()->value() ?: null,
+                $request->input('expiry_date') ?: null,
             );
         } catch (RuntimeException $e) {
             return back()->with('error', $e->getMessage());

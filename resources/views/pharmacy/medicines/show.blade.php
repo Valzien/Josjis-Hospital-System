@@ -81,6 +81,55 @@
         </div>
 
         <div class="col-xl-8">
+            <x-card title="Batch Obat" subtitle="{{ $batches->count() }} batch tercatat" icon="bi-boxes" class="mb-3">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle jhs-table-compact">
+                        <thead>
+                            <tr>
+                                <th>Nomor Batch</th>
+                                <th class="text-center">Stok</th>
+                                <th>Kedaluwarsa</th>
+                                <th>Status</th>
+                                <th class="text-end">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($batches as $batch)
+                                <tr>
+                                    <td class="small fw-semibold">{{ $batch->batch_number }}</td>
+                                    <td class="small text-center">{{ $batch->quantity }} {{ $medicine->unit }}</td>
+                                    <td class="small">{{ $batch->expiryLabel() }}</td>
+                                    <td>
+                                        <x-badge :text="$batch->statusLabel()" :color="$batch->statusColor()" />
+                                    </td>
+                                    <td class="text-end">
+                                        @if ($batch->isExpired() && $batch->quantity > 0)
+                                            <form method="POST" action="{{ route('pharmacy.batches.dispose', $batch) }}"
+                                                  onsubmit="return confirm('Musnahkan batch {{ $batch->batch_number }}?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-danger btn-sm">
+                                                    <i class="bi bi-trash3 me-1"></i>Musnahkan
+                                                </button>
+                                            </form>
+                                        @else
+                                            <span class="text-muted-2 small">&mdash;</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5">
+                                        <x-empty-state icon="bi-boxes" title="Belum ada batch"
+                                                       text="Catat barang masuk dengan nomor batch untuk mengaktifkan FEFO." />
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </x-card>
+
             <x-card title="Riwayat Stok" subtitle="{{ $transactions->total() }} transaksi" icon="bi-arrow-left-right">
                 <div class="table-responsive">
                     <table class="table table-hover align-middle jhs-table-compact">

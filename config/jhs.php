@@ -233,6 +233,7 @@ return [
             ['section' => 'Farmasi', 'label' => 'Resep Masuk', 'route' => 'pharmacy.prescriptions.index', 'icon' => 'bi-inbox', 'badge' => 'prescription'],
             ['label' => 'Data Obat', 'route' => 'pharmacy.medicines.index', 'icon' => 'bi-capsule'],
             ['label' => 'Stok Obat', 'route' => 'pharmacy.stock.index', 'icon' => 'bi-box-seam', 'badge' => 'low_stock'],
+            ['label' => 'Batch & Kedaluwarsa', 'route' => 'pharmacy.batches.index', 'icon' => 'bi-boxes', 'badge' => 'expired'],
             ['label' => 'Transaksi Obat', 'route' => 'pharmacy.transactions.index', 'icon' => 'bi-arrow-left-right'],
         ],
         UserRole::Cashier->value => [

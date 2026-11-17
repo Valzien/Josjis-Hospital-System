@@ -26,6 +26,7 @@ class MedicineRequest extends FormRequest
             'stock' => ['nullable', 'integer', 'min:0', 'max:1000000'],
             'minimum_stock' => ['required', 'integer', 'min:0', 'max:1000000'],
             'price' => ['required', 'numeric', 'min:0', 'max:10000000'],
+            'batch_number' => ['nullable', 'string', 'max:80'],
             'expiry_date' => ['nullable', 'date'],
             'description' => ['nullable', 'string', 'max:1000'],
             'status' => ['required', Rule::in(array_keys(ActiveStatus::options()))],
@@ -48,6 +49,7 @@ class MedicineRequest extends FormRequest
             'medicine_code' => 'kode obat',
             'minimum_stock' => 'stok minimum',
             'name' => 'nama obat',
+            'batch_number' => 'nomor batch',
         ];
     }
 
@@ -62,6 +64,8 @@ class MedicineRequest extends FormRequest
             'stock' => (int) ($this->input('stock') ?? 0),
             'minimum_stock' => (int) $this->input('minimum_stock'),
             'price' => (float) $this->input('price'),
+            'batch_number' => $this->string('batch_number')->trim()->value() ?: null,
+            'expiry_date' => $this->input('expiry_date') ?: null,
             'description' => $this->input('description') ?: null,
             'status' => $this->input('status'),
         ];

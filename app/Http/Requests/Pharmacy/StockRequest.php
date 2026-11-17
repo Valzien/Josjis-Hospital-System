@@ -16,6 +16,8 @@ class StockRequest extends FormRequest
     {
         return [
             'quantity' => ['required', 'integer', 'min:1', 'max:1000000'],
+            'batch_number' => ['nullable', 'string', 'max:80', 'required_with:expiry_date'],
+            'expiry_date' => ['nullable', 'date', 'required_with:batch_number'],
             'notes' => ['nullable', 'string', 'max:500'],
         ];
     }
@@ -26,12 +28,20 @@ class StockRequest extends FormRequest
         return [
             'quantity.required' => 'Jumlah wajib diisi.',
             'quantity.min' => 'Jumlah minimal 1.',
+            'batch_number.required_with' => 'Nomor batch wajib diisi bersama tanggal kedaluwarsa.',
+            'expiry_date.required_with' => 'Tanggal kedaluwarsa wajib diisi bersama nomor batch.',
         ];
     }
 
     /** @return array<string, string> */
     public function attributes(): array
     {
-        return ['quantity' => 'jumlah', 'new_stock' => 'stok baru', 'notes' => 'catatan'];
+        return [
+            'quantity' => 'jumlah',
+            'new_stock' => 'stok baru',
+            'batch_number' => 'nomor batch',
+            'expiry_date' => 'tanggal kedaluwarsa',
+            'notes' => 'catatan',
+        ];
     }
 }

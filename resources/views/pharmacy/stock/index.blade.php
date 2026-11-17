@@ -27,9 +27,26 @@
                          :href="route('pharmacy.stock.index', ['out_of_stock' => 1])" />
         </div>
         <div class="col-6 col-xl-3">
+            <x-stat-card label="Qty Kedaluwarsa" :value="$stats['expired_qty']" icon="bi-trash3" color="danger"
+                         :href="route('pharmacy.batches.index', ['status' => 'expired'])" />
+        </div>
+        <div class="col-6 col-xl-3">
             <x-stat-card label="Nilai Inventaris" :value="$stats['value']" icon="bi-cash-stack" color="success" />
         </div>
     </div>
+
+    @if ($expiredBatches->isNotEmpty())
+        <div class="alert alert-danger d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+            <div>
+                <i class="bi bi-x-circle-fill me-1"></i>
+                <strong>{{ $expiredBatches->count() }}</strong> batch obat sudah kedaluwarsa dan tidak bisa dipakai.
+                Terakhir: {{ $expiredBatches->first()->medicine?->name }} ({{ $expiredBatches->first()->batch_number }}).
+            </div>
+            <a href="{{ route('pharmacy.batches.index', ['status' => 'expired']) }}" class="btn btn-sm btn-danger">
+                Tinjau &amp; Musnahkan
+            </a>
+        </div>
+    @endif
 
     <x-card class="mb-3">
         <form method="GET" class="row g-2 align-items-end">
@@ -71,6 +88,7 @@
                         <th>Obat</th>
                         <th class="text-center">Stok</th>
                         <th style="width:180px">Level</th>
+                        <th>Kedaluwarsa</th>
                         <th class="text-end">Aksi Stok</th>
                     </tr>
                 </thead>
@@ -96,6 +114,15 @@
                                             :total="max($medicine->minimum_stock * 2, $medicine->stock, 1)"
                                             color="{{ $medicine->isLowStock() ? 'bg-danger' : 'bg-success' }}" />
                             </td>
+                            <td class="small">
+                                @if ($medicine->expiry_date)
+                                    <span class="{{ $medicine->isExpired() ? 'text-danger fw-semibold' : ($medicine->isExpiringSoon() ? 'text-warning fw-semibold' : 'text-muted-2') }}">
+                                        {{ $medicine->expiry_date->translatedFormat('d M Y') }}
+                                    </span>
+                                @else
+                                    <span class="text-muted-2">&mdash;</span>
+                                @endif
+                            </td>
                             <td class="text-end">
                                 <div class="btn-group btn-group-sm">
                                     <button type="button" class="btn btn-light border" data-bs-toggle="modal"
@@ -119,7 +146,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4"><x-empty-state icon="bi-box-seam" title="Belum ada obat" /></td>
+                            <td colspan="5"><x-empty-state icon="bi-box-seam" title="Belum ada obat" /></td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -183,6 +210,20 @@
                     <div class="mb-3">
                         <label class="form-label" for="in-quantity">Jumlah Masuk</label>
                         <input type="number" name="quantity" id="in-quantity" min="1" value="1" required class="form-control">
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label" for="in-batch">Nomor Batch</label>
+                            <input type="text" name="batch_number" id="in-batch" maxlength="80" class="form-control"
+                                   placeholder="Contoh: BT-2501" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="in-expiry">Tanggal Kedaluwarsa</label>
+                            <input type="date" name="expiry_date" id="in-expiry" class="form-control" required>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-text">Nomor batch dan tanggal kedaluwarsa wajib untuk stok baru agar pemakaian mengikuti FEFO.</div>
+                        </div>
                     </div>
                     <div>
                         <label class="form-label" for="in-notes">Catatan</label>

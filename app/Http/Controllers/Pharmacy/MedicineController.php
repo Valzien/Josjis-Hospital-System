@@ -3,19 +3,23 @@
 namespace App\Http\Controllers\Pharmacy;
 
 use App\Enums\ActiveStatus;
-use App\Enums\TransactionType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Pharmacy\MedicineRequest;
 use App\Models\Medicine;
-use App\Models\MedicineTransaction;
 use App\Services\AuditLogger;
+use App\Services\MedicineService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
+use RuntimeException;
 
 class MedicineController extends Controller
 {
-    public function __construct(private readonly AuditLogger $audit) {}
+    public function __construct(
+        private readonly AuditLogger $audit,
+        private readonly MedicineService $medicines,
+    ) {}
 
     public function index(Request $request): View
     {
@@ -25,8 +29,8 @@ class MedicineController extends Controller
             ->when($request->filled('category'), fn ($q) => $q->where('category', $request->string('category')->value))
             ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')->value))
             ->when($request->boolean('low_stock'), fn ($q) => $q->lowStock())
-            ->when($request->string('expiry')->value === 'expired', fn ($q) => $q->whereNotNull('expiry_date')->whereDate('expiry_date', '<', now()->toDateString()))
-            ->when($request->string('expiry')->value === 'expiring_soon', fn ($q) => $q->whereNotNull('expiry_date')->whereDate('expiry_date', '>=', now()->toDateString())->whereDate('expiry_date', '<=', now()->addDays(30)->toDateString()))
+            ->when($request->string('expiry')->value === 'expired', fn ($q) => $q->expired())
+            ->when($request->string('expiry')->value === 'expiring_soon', fn ($q) => $q->expiringSoon(30))
             ->orderBy('name')
             ->paginate(15)
             ->withQueryString();
@@ -37,8 +41,9 @@ class MedicineController extends Controller
             'statuses' => ActiveStatus::options(),
             'filters' => $request->only('q', 'category', 'status', 'low_stock', 'expiry'),
             'lowStockCount' => Medicine::query()->active()->lowStock()->count(),
-            'expiredCount' => Medicine::query()->active()->whereNotNull('expiry_date')->whereDate('expiry_date', '<', now()->toDateString())->count(),
-            'expiringSoonCount' => Medicine::query()->active()->whereNotNull('expiry_date')->whereDate('expiry_date', '>=', now()->toDateString())->whereDate('expiry_date', '<=', now()->addDays(30)->toDateString())->count(),
+            'expiredCount' => Medicine::query()->active()->expired()->count(),
+            'expiringSoonCount' => Medicine::query()->active()->expiringSoon(30)->count(),
+            'expiredBatchCount' => $this->medicines->expiredBatchCount(),
         ]);
     }
 
@@ -56,20 +61,30 @@ class MedicineController extends Controller
     {
         $data = $request->payload();
         $stock = (int) ($data['stock'] ?? 0);
+        $batchNumber = $data['batch_number'] ?? null;
+        $expiryDate = $data['expiry_date'] ?? null;
 
-        $medicine = Medicine::create($data);
+        unset($data['batch_number'], $data['stock']);
 
-        if ($stock > 0) {
-            MedicineTransaction::create([
-                'medicine_id' => $medicine->id,
-                'type' => TransactionType::In,
-                'quantity' => $stock,
-                'stock_before' => 0,
-                'stock_after' => $stock,
-                'reference_type' => 'manual',
-                'notes' => 'Stok awal saat obat dibuat',
-                'user_id' => auth()->id(),
-            ]);
+        try {
+            $medicine = DB::transaction(function () use ($data, $stock, $batchNumber, $expiryDate) {
+                $medicine = Medicine::create($data);
+
+                if ($stock > 0) {
+                    $this->medicines->stockIn(
+                        $medicine,
+                        $stock,
+                        'Stok awal saat obat dibuat',
+                        auth()->id(),
+                        $expiryDate ? ($batchNumber ?: 'AWAL-'.$medicine->medicine_code) : null,
+                        $expiryDate,
+                    );
+                }
+
+                return $medicine;
+            });
+        } catch (RuntimeException $e) {
+            return back()->withInput()->with('error', $e->getMessage());
         }
 
         $this->audit->created('pharmacy', 'Medicine', $medicine->id, "Menambahkan obat {$medicine->name} dengan stok awal {$stock}.");
@@ -102,7 +117,8 @@ class MedicineController extends Controller
 
         return view('pharmacy.medicines.show', [
             'medicine' => $medicine,
-            'transactions' => $medicine->transactions()->with('user')->latest()->paginate(15),
+            'batches' => $medicine->batches()->orderBy('expiry_date')->orderBy('batch_number')->get(),
+            'transactions' => $medicine->transactions()->with(['user', 'batch'])->latest()->paginate(15),
         ]);
     }
 

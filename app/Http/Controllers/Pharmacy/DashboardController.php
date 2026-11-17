@@ -38,6 +38,8 @@ class DashboardController extends Controller
             'lowStockCount' => $medicines->lowStockCount(),
             'expiringSoonCount' => $medicines->expiringSoonCount(30),
             'expiredCount' => $medicines->expiredCount(),
+            'expiringBatchCount' => $medicines->expiringBatchCount(30),
+            'expiredBatchCount' => $medicines->expiredBatchCount(),
             'totalMedicines' => Medicine::query()->active()->count(),
             'todayTransactions' => MedicineTransaction::query()
                 ->with('medicine')

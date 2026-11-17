@@ -20,17 +20,19 @@
         <div class="alert alert-danger d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
             <div>
                 <i class="bi bi-x-circle-fill me-1"></i>
-                Peringatan: Terdapat <strong>{{ $expiredCount }}</strong> obat yang telah melewati masa kedaluwarsa!
+                Peringatan: Terdapat <strong>{{ $expiredCount }}</strong> obat dengan batch kedaluwarsa
+                ({{ $expiredBatchCount ?? 0 }} batch)!
             </div>
-            <a href="{{ route('pharmacy.medicines.index', ['expiry' => 'expired']) }}" class="btn btn-sm btn-danger">Tinjau Obat Kedaluwarsa</a>
+            <a href="{{ route('pharmacy.batches.index', ['status' => 'expired']) }}" class="btn btn-sm btn-danger">Tinjau Batch Kedaluwarsa</a>
         </div>
     @elseif (($expiringSoonCount ?? 0) > 0)
         <div class="alert alert-warning d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
             <div>
                 <i class="bi bi-exclamation-triangle-fill me-1"></i>
-                Perhatian: Terdapat <strong>{{ $expiringSoonCount }}</strong> obat yang mendekati tanggal kedaluwarsa (&lt; 30 hari).
+                Perhatian: Terdapat <strong>{{ $expiringSoonCount }}</strong> obat dengan Batch mendekati kedaluwarsa
+                ({{ $expiringBatchCount ?? 0 }} batch, &le; 30 hari).
             </div>
-            <a href="{{ route('pharmacy.medicines.index', ['expiry' => 'expiring_soon']) }}" class="btn btn-sm btn-warning">Periksa Stok Obat</a>
+            <a href="{{ route('pharmacy.batches.index', ['status' => 'expiring_soon']) }}" class="btn btn-sm btn-warning">Periksa Batch Obat</a>
         </div>
     @endif
 

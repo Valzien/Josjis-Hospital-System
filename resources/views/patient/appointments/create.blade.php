@@ -168,7 +168,7 @@
                                 @error('complaint_note')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
 
-                            <button type="submit" class="btn btn-primary"
+                            <button type="submit" class="btn btn-primary" id="submitAppointment"
                                     @disabled($existingQueue !== null || $todayAppointment !== null || ! old('doctor_schedule_id'))>
                                 <i class="bi bi-ticket-perforated me-1"></i>Ambil Nomor Antrean
                             </button>
@@ -328,12 +328,13 @@
                     const radio = option.querySelector('.js-schedule-radio');
                     if (radio) radio.checked = active;
                 });
+
+                if (submit) submit.disabled = id === '';
             }
 
             options.forEach(function (option) {
                 option.addEventListener('click', function () {
                     selectSchedule(option.dataset.scheduleId);
-                    if (submit) submit.disabled = false;
                 });
             });
 
@@ -378,7 +379,6 @@
                     const doctorName = card ? card.querySelector('.jhs-card-title') : null;
                     if (summaryDoctor) summaryDoctor.textContent = doctorName ? doctorName.textContent.trim() : 'Dokter';
                     if (summaryTime) summaryTime.textContent = button.dataset.time + ' WIB';
-                    if (submit) submit.disabled = false;
                 });
             });
 
